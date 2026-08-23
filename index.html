@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClimateOS — AI Disaster Intelligence & Response Platform</title>
+  
+  <!-- Google Fonts & Leaflet CSS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- App Custom Styles -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Top App Navigation Header -->
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-icon">🌍</div>
+      <div class="brand-title">ClimateOS</div>
+      <span class="brand-badge">PRD v2.0 MVP</span>
+      <span id="hdr-risk-score" class="brand-badge" style="background: rgba(239, 68, 68, 0.2); color: #ef4444; border-color: rgba(239, 68, 68, 0.4);">
+        City Risk: 88/100 (HIGH RISK)
+      </span>
+    </div>
+
+    <!-- Disaster Simulation Controller (PRD Section 19 Demo) -->
+    <div class="sim-bar">
+      <div class="sim-label">
+        <span>⚡ Demo Sim:</span>
+      </div>
+      <button class="sim-step-btn" data-step="1">1. Predict</button>
+      <button class="sim-step-btn active" data-step="2">2. Risk</button>
+      <button class="sim-step-btn" data-step="3">3. Report</button>
+      <button class="sim-step-btn" data-step="4">4. Verify</button>
+      <button class="sim-step-btn" data-step="5">5. Map</button>
+      <button class="sim-step-btn" data-step="6">6. Recommend</button>
+      <button class="sim-step-btn" data-step="7">7. Citizen</button>
+      <button class="sim-step-btn" data-step="8">8. Obstacle</button>
+      <button class="sim-step-btn" data-step="9">9. Recalc</button>
+      <button class="sim-step-btn" data-step="10">10. Learn</button>
+    </div>
+
+    <!-- Mode Switcher -->
+    <div class="mode-switcher">
+      <button id="btn-mode-gov" class="mode-btn active">🏛️ Command Center</button>
+      <button id="btn-mode-citizen" class="mode-btn">📱 Citizen App</button>
+    </div>
+  </header>
+
+  <!-- Main Body Content -->
+  <main class="app-body">
+    
+    <!-- 1. Government Command Center View -->
+    <div id="view-gov" class="view-container gov-layout active">
+      
+      <!-- Left Panel: Incident Feed & Priority Ranking -->
+      <aside class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">📡 AI Ground-Truth & Verification</h2>
+        </div>
+        <div class="panel-content">
+          
+          <!-- Simulation Status Card -->
+          <div class="glass-card">
+            <div class="card-title">Disaster Simulation Phase</div>
+            <div id="sim-step-desc" style="font-size: 13px; line-height: 1.4;">
+              <strong>2. Risk Rises — Water Overflow</strong><br>
+              <span style="color:#94a3b8;">River gauge sensors report rise (+35cm/hr). Zone A in HIGH RISK.</span>
+            </div>
+          </div>
+
+          <!-- Incidents Feed -->
+          <div class="glass-card">
+            <div class="card-title">Verified Incident Feed</div>
+            <div id="incident-feed-container">
+              <!-- Rendered dynamically by app.js -->
+            </div>
+          </div>
+
+          <!-- Priority Ranking Matrix -->
+          <div class="glass-card">
+            <div class="card-title">AI Rescue & Priority Ranking Matrix</div>
+            <div id="priority-matrix-container">
+              <!-- Rendered dynamically by app.js -->
+            </div>
+          </div>
+
+        </div>
+      </aside>
+
+      <!-- Center Panel: 2.5D Digital Twin GIS Map -->
+      <section class="map-container">
+        
+        <!-- Floating Map Stats -->
+        <div class="map-stats-bar">
+          <div class="stat-pill">
+            <div class="stat-icon">🌧️</div>
+            <div>
+              <div class="stat-val">110 mm/h</div>
+              <div class="stat-lbl">Rainfall Intensity</div>
+            </div>
+          </div>
+          <div class="stat-pill">
+            <div class="stat-icon">🌊</div>
+            <div>
+              <div class="stat-val">4.2 m</div>
+              <div class="stat-lbl">River Water Gauge</div>
+            </div>
+          </div>
+          <div class="stat-pill">
+            <div class="stat-icon">🚨</div>
+            <div>
+              <div class="stat-val">14,200</div>
+              <div class="stat-lbl">Zone A Pop. at Risk</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Leaflet Map Canvas -->
+        <div id="map"></div>
+      </section>
+
+      <!-- Right Panel: AI Action Recommendations & XAI -->
+      <aside class="panel panel-right">
+        <div class="panel-header">
+          <h2 class="panel-title">🤖 AI Decision Support & Actions</h2>
+        </div>
+        <div class="panel-content">
+          
+          <div class="glass-card">
+            <div class="card-title" style="color:var(--accent-cyan);">Core Principle</div>
+            <div style="font-size:12px; color:var(--text-secondary); line-height:1.4;">
+              AI calculates risk & recommends actions. Authorized humans retain final emergency execution decisions.
+            </div>
+          </div>
+
+          <div id="recommendations-container">
+            <!-- Rendered dynamically by app.js -->
+          </div>
+
+        </div>
+      </aside>
+    </div>
+
+    <!-- 2. Citizen Mobile App View -->
+    <div id="view-citizen" class="view-container citizen-layout">
+      <div class="citizen-phone-shell">
+        
+        <!-- Citizen Alert Banner -->
+        <div class="citizen-banner">
+          <div class="citizen-risk-badge">🚨 EMERGENCY ALERT — ZONE A</div>
+          <div class="citizen-alert-text">
+            Flash flood warning active in your zone. Water levels rising rapidly near Riverside Ave. Move to high ground or designated shelters immediately.
+          </div>
+        </div>
+
+        <div class="citizen-body">
+          
+          <!-- Report Incident Button -->
+          <button id="btn-open-report" class="quick-btn quick-btn-primary">
+            <span>📢 Report Emergency Incident</span>
+            <span>➔</span>
+          </button>
+
+          <!-- Safe Route Navigator Card -->
+          <div class="glass-card">
+            <div class="card-title">🛡️ Dynamic Safe Evacuation Route</div>
+            <div style="font-size:13px; font-weight:600; color:var(--success-emerald); margin-bottom:4px;">
+              Route C — Elevated Highway Bypass
+            </div>
+            <div style="font-size:12px; color:var(--text-secondary); margin-bottom:8px;">
+              Est. Distance: 2.4 km • Travel Time: ~12 mins (Safest Route)
+            </div>
+            <div style="font-size:11px; color:var(--danger-red); background:rgba(239,68,68,0.1); padding:6px 10px; border-radius:6px;">
+              ⚠️ Avoid Route A (Riverside Bridge - Flooded 1.4m)
+            </div>
+          </div>
+
+          <!-- Shelter Finder Card -->
+          <div class="glass-card">
+            <div class="card-title">🏥 Nearby Safe Shelters</div>
+            <div style="margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.06);">
+              <div style="font-size:13px; font-weight:600;">Shelter B — Central School</div>
+              <div style="font-size:11px; color:var(--text-muted);">800 m away • Status: OPEN • Occupancy: 45 / 400</div>
+            </div>
+            <div>
+              <div style="font-size:13px; font-weight:600;">Shelter A — Community Hall</div>
+              <div style="font-size:11px; color:var(--text-muted);">1.5 km away • Status: NEAR CAPACITY (82%)</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Citizen Incident Report Form Modal -->
+  <div id="modal-report" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title">📢 Submit Disaster Report</h3>
+        <button id="btn-close-report" class="modal-close">&times;</button>
+      </div>
+      <form id="form-citizen-report">
+        <div class="form-group">
+          <label class="form-label">Incident Category</label>
+          <select id="rep-category" class="form-control">
+            <option value="flood">🌊 Flood & Water Logging</option>
+            <option value="trapped">🆘 Trapped People / Rescue Needed</option>
+            <option value="road">🚧 Road Blockage / Bridge Damage</option>
+            <option value="fire">🔥 Fire Hazard</option>
+            <option value="medical">🚑 Medical Emergency</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Location / Address</label>
+          <input type="text" id="rep-location" class="form-control" value="142 Riverside Avenue" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Trapped People Count (Optional)</label>
+          <input type="number" id="rep-trapped" class="form-control" value="4">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea id="rep-description" class="form-control" rows="3" required>Water entering homes quickly, vehicles stalled on the main road.</textarea>
+        </div>
+        <button type="submit" class="quick-btn quick-btn-primary" style="margin-top:10px;">
+          <span>Submit to AI Verification Core</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- XAI Rationale Modal -->
+  <div id="modal-xai" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title">🤖 Explainable AI (XAI) Rationale</h3>
+        <button id="btn-close-xai" class="modal-close">&times;</button>
+      </div>
+      <div id="xai-content">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet JS & App Scripts -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="js/ai-engine.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/simulation.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+{
+  "zones": [
+    {
+      "id": "zone-a",
+      "name": "Zone A — Riverside",
+      "score": 88.0,
+      "status": "HIGH RISK",
+      "severity": "CRITICAL",
+      "confidence": 94.0,
+      "pop_at_risk": 14200,
+      "terrain": "Low-lying basin",
+      "bounds": [[12.971, 77.594], [12.981, 77.604]]
+    },
+    {
+      "id": "zone-b",
+      "name": "Zone B — Downtown",
+      "score": 64.0,
+      "status": "MEDIUM RISK",
+      "severity": "ELEVATED",
+      "confidence": 88.0,
+      "pop_at_risk": 28500,
+      "terrain": "Urban paved",
+      "bounds": [[12.961, 77.584], [12.971, 77.594]]
+    },
+    {
+      "id": "zone-c",
+      "name": "Zone C — Westside",
+      "score": 42.0,
+      "status": "MODERATE RISK",
+      "severity": "MODERATE",
+      "confidence": 85.0,
+      "pop_at_risk": 18000,
+      "terrain": "Rolling hills",
+      "bounds": [[12.951, 77.574], [12.961, 77.584]]
+    },
+    {
+      "id": "zone-d",
+      "name": "Zone D — North Hills",
+      "score": 15.0,
+      "status": "LOW RISK",
+      "severity": "NORMAL",
+      "confidence": 96.0,
+      "pop_at_risk": 9200,
+      "terrain": "High elevation",
+      "bounds": [[12.981, 77.604], [12.991, 77.614]]
+    }
+  ],
+  "shelters": [
+    {
+      "id": "shelter-a",
+      "name": "Shelter A — Community Center",
+      "location": "Northside Avenue 45",
+      "lat": 12.978,
+      "lng": 77.598,
+      "capacity": 500,
+      "occupancy": 410,
+      "accessibility": "Wheelchair accessible, Generator backup",
+      "status": "NEAR_CAPACITY"
+    },
+    {
+      "id": "shelter-b",
+      "name": "Shelter B — Central High School",
+      "location": "Hill Road 102",
+      "lat": 12.985,
+      "lng": 77.605,
+      "capacity": 400,
+      "occupancy": 45,
+      "accessibility": "Medical triage bay, Helipad adjacent",
+      "status": "OPEN"
+    }
+  ],
+  "resources": [
+    {
+      "id": "res-boat-1",
+      "type": "Rescue Boat",
+      "name": "Rapid Water Rescue Team 1",
+      "quantity": 3,
+      "lat": 12.975,
+      "lng": 77.592,
+      "availability": "AVAILABLE"
+    },
+    {
+      "id": "res-med-1",
+      "type": "Ambulance",
+      "name": "EMRT Ambulance Squad 4",
+      "quantity": 2,
+      "lat": 12.980,
+      "lng": 77.600,
+      "availability": "AVAILABLE"
+    }
+  ]
+}

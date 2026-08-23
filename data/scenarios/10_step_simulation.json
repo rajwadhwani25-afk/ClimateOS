@@ -1,0 +1,83 @@
+[
+  {
+    "step": 1,
+    "title": "1. Predict — Rainfall Forecast Warning",
+    "description": "Meteorological radar predicts heavy storm cell approaching Zone A. Rainfall intensity expected to exceed 100mm/hr.",
+    "rainfall_mm_hr": 65.0,
+    "water_level_m": 2.1
+  },
+  {
+    "step": 2,
+    "title": "2. Risk Rises — Water Overflow",
+    "description": "River gauge sensors report rapid rise (+35cm/hr). Zone A elevation basin triggers HIGH RISK state (88/100).",
+    "rainfall_mm_hr": 110.0,
+    "water_level_m": 4.2
+  },
+  {
+    "step": 3,
+    "title": "3. Citizen Sense — Emergency Report Submitted",
+    "description": "Citizen submits report via mobile web: 'Water entering homes quickly at 142 Riverside Ave, 4 people trapped'.",
+    "rainfall_mm_hr": 110.0,
+    "water_level_m": 4.3,
+    "new_report": {
+      "id": "REP-8821",
+      "category": "trapped",
+      "location": "142 Riverside Avenue",
+      "lat": 12.973,
+      "lng": 77.595,
+      "description": "Water entering homes quickly, vehicles stalled on the main road.",
+      "trapped_count": 4,
+      "injured_count": 0
+    }
+  },
+  {
+    "step": 4,
+    "title": "4. Verify — AI Report Verification Engine",
+    "description": "AI engine cross-references GPS, photo evidence, and nearby river sensor data -> 94% High Confidence Verification.",
+    "rainfall_mm_hr": 115.0,
+    "water_level_m": 4.4
+  },
+  {
+    "step": 5,
+    "title": "5. Understand — Digital Twin Map Update",
+    "description": "GIS map dynamically updates Zone A hazard polygon, marks verified flood cluster and active incident pin.",
+    "rainfall_mm_hr": 115.0,
+    "water_level_m": 4.5
+  },
+  {
+    "step": 6,
+    "title": "6. Prioritize & Act — AI Recommendation Generated",
+    "description": "Priority matrix ranks 142 Riverside Ave #1. AI recommends deploying Rescue Boat Unit 1. Authority accepts recommendation.",
+    "rainfall_mm_hr": 115.0,
+    "water_level_m": 4.5
+  },
+  {
+    "step": 7,
+    "title": "7. Citizen Route — Personalized Safe Evacuation",
+    "description": "Citizen app recalculates safe evacuation route to Shelter B (Central School) avoiding flooded low-lying roads.",
+    "rainfall_mm_hr": 110.0,
+    "water_level_m": 4.5
+  },
+  {
+    "step": 8,
+    "title": "8. Obstacle Sense — Bridge Blocked Report",
+    "description": "New ground-truth report: Riverside Drive Bridge flooded under 1.4m water. Road marked blocked.",
+    "rainfall_mm_hr": 105.0,
+    "water_level_m": 4.6,
+    "blocked_road": "Riverside Drive Bridge"
+  },
+  {
+    "step": 9,
+    "title": "9. Recalculate — Dynamic Route Adaptation",
+    "description": "Routing engine detects blocked bridge hazard -> instantly reroutes citizen stream via Elevated Highway (Route C).",
+    "rainfall_mm_hr": 95.0,
+    "water_level_m": 4.4
+  },
+  {
+    "step": 10,
+    "title": "10. Learn & Feedback — Closed-Loop State Update",
+    "description": "Disaster response verified. Rescue team dispatched, 4 citizens evacuated safely, AI weight scores updated.",
+    "rainfall_mm_hr": 70.0,
+    "water_level_m": 3.8
+  }
+]
