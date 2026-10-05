@@ -1,0 +1,96 @@
+[
+  {
+    "id": "REC-EVAC-zone-a",
+    "type": "EVACUATION",
+    "priority": "CRITICAL",
+    "title": "Initiate Mass Evacuation — Zone A (Riverside)",
+    "description": "Zone A risk score has reached 88/100 (HIGH RISK). Water levels rising at +15cm/hr. Immediate evacuation of all residents strongly recommended.",
+    "target_zone": "zone-a",
+    "affected_population": 14200,
+    "action_text": "Trigger Evacuation Alert",
+    "decision_status": "PENDING",
+    "confidence": 96,
+    "xai_factors": {
+      "rainfall_intensity": "110 mm/hr (Extremely High)",
+      "river_gauge": "4.2m — 0.6m above flood threshold",
+      "terrain": "Low-lying basin, 4m above sea level",
+      "verified_reports": "3 High-Confidence cross-verified incidents",
+      "historical_context": "Zone A flooded in 2019 at 3.8m gauge level"
+    },
+    "created_at": "2026-10-06T04:45:00+05:30"
+  },
+  {
+    "id": "REC-RESCUE-INC-1042",
+    "type": "RESCUE_DEPLOYMENT",
+    "priority": "CRITICAL",
+    "title": "Deploy Rescue Boat Unit 2 → 142 Riverside Avenue",
+    "description": "12 people trapped, 2 injured at 142 Riverside Avenue. Water depth 1.2m. Boat rescue required immediately.",
+    "target_zone": "zone-a",
+    "affected_population": 14,
+    "action_text": "Dispatch Rescue Team",
+    "decision_status": "PENDING",
+    "confidence": 94,
+    "xai_factors": {
+      "trapped_count": "12 people (2 elderly, injured)",
+      "water_depth": "1.2m on road — vehicle access impossible",
+      "nearest_unit": "Rescue Boat Unit 2 — 8 min ETA",
+      "confidence": "94% (3 cross-verified reports)"
+    },
+    "created_at": "2026-10-06T04:45:00+05:30"
+  },
+  {
+    "id": "REC-SHELTER-open-b",
+    "type": "SHELTER_ACTIVATION",
+    "priority": "HIGH",
+    "title": "Activate Shelter B — Central School (North Hills)",
+    "description": "Shelter A is at 82% capacity (410/500). Shelter B has 355 available spaces. Open immediately for Zone A evacuees.",
+    "target_zone": "zone-b",
+    "affected_population": 355,
+    "action_text": "Activate Shelter B",
+    "decision_status": "APPROVED",
+    "confidence": 89,
+    "xai_factors": {
+      "shelter_a_capacity": "410/500 — 82% full",
+      "shelter_b_availability": "355 free spaces",
+      "projected_evacuees": "+250 citizens in next 2 hours",
+      "route_status": "Route C (North Hills) — Clear of flooding"
+    },
+    "created_at": "2026-10-06T04:43:00+05:30"
+  },
+  {
+    "id": "REC-ROAD-close-riverside",
+    "type": "ROAD_CLOSURE",
+    "priority": "HIGH",
+    "title": "Close Riverside Bridge — Route A",
+    "description": "Riverside Bridge submerged 1.4m. Immediate closure required to prevent vehicle entrapment and loss of life.",
+    "target_zone": "zone-a",
+    "affected_population": 0,
+    "action_text": "Issue Road Closure Order",
+    "decision_status": "PENDING",
+    "confidence": 88,
+    "xai_factors": {
+      "flood_depth": "1.4m above bridge deck",
+      "vehicle_count": "Approx. 15 vehicles blocked",
+      "safe_alternative": "Route C — Elevated Highway Bypass (2.4km)"
+    },
+    "created_at": "2026-10-06T04:41:00+05:30"
+  },
+  {
+    "id": "REC-WATER-supply-zone-b",
+    "type": "RESOURCE_DEPLOYMENT",
+    "priority": "MODERATE",
+    "title": "Deploy Emergency Water Tankers — Sector 3, Zone B",
+    "description": "Main pump station flooded. Deploy 3 water tankers to Sector 3 to supply potable water to ~2000 residents.",
+    "target_zone": "zone-b",
+    "affected_population": 2000,
+    "action_text": "Deploy Water Tankers",
+    "decision_status": "PENDING",
+    "confidence": 68,
+    "xai_factors": {
+      "pump_status": "Substation flooded — offline",
+      "affected_households": "~650 households",
+      "nearest_tankers": "2 units available at Depot B (Zone C)"
+    },
+    "created_at": "2026-10-06T04:38:00+05:30"
+  }
+]

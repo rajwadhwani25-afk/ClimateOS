@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClimateOS — Map View</title>
+  <meta name="description" content="ClimateOS interactive flood risk map: risk zones, shelters, and incident markers.">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+
+  <style>
+    body { overflow: hidden; }
+    #citizen-map { width: 100%; height: calc(100vh - 60px); }
+    .map-legend {
+      position: absolute;
+      bottom: 40px;
+      left: 16px;
+      z-index: 500;
+      background: rgba(13,19,34,0.9);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      font-size: 12px;
+      backdrop-filter: blur(10px);
+    }
+    .map-legend__title { font-weight: 700; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; font-size: 10px; }
+    .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .legend-dot  { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  </style>
+</head>
+<body>
+
+  <div id="navbar-root"></div>
+
+  <main class="page-main" style="position:relative;">
+    <div id="citizen-map" role="application" aria-label="Interactive flood risk map"></div>
+
+    <!-- Map Legend -->
+    <div class="map-legend" aria-label="Map legend">
+      <div class="map-legend__title">Risk Levels</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--risk-severe);"></div> Severe</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--risk-high);"></div> High</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--risk-moderate);"></div> Moderate</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--risk-low);"></div> Low</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--accent-cyan);"></div> 🏥 Shelter</div>
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    ⚠️ ClimateOS supports decisions; authorized emergency authorities make final calls.
+  </footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script type="module">
+    import { initNavbar } from './js/components/navbar.js';
+    initNavbar('citizen');
+  </script>
+  <script type="module" src="js/citizen/map-view.js"></script>
+
+</body>
+</html>

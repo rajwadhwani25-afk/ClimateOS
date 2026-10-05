@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClimateOS — Government Command Center</title>
+  <meta name="description" content="ClimateOS Government Command Center: AI-powered situation awareness, incident feed, recommendations, zone risk table, and disaster simulation.">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+
+  <style>
+    body { overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+    #gov-map { width: 100%; height: 100%; }
+
+    /* Tab navigation inside panels */
+    .panel-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border-color);
+      flex-shrink: 0;
+    }
+    .panel-tab {
+      padding: 10px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .panel-tab.active {
+      color: var(--accent-cyan);
+      border-bottom-color: var(--accent-cyan);
+    }
+    .panel-tab-content { display: none; }
+    .panel-tab-content.active { display: flex; flex-direction: column; gap: var(--space-md); }
+
+    /* Map stats overlay */
+    .map-stats-bar {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      z-index: 500;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      pointer-events: none;
+    }
+    .stat-pill {
+      pointer-events: auto;
+      background: rgba(13,19,34,0.9);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: var(--shadow-card);
+    }
+    .stat-pill__icon { font-size: 20px; }
+    .stat-pill__val  { font-family: var(--font-display); font-size: 18px; font-weight: 700; }
+    .stat-pill__lbl  { font-size: 10px; color: var(--text-secondary); }
+
+    /* Core principle strip */
+    .principle-strip {
+      padding: 8px 12px;
+      background: rgba(6,182,212,0.07);
+      border: 1px solid rgba(6,182,212,0.2);
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="navbar-root"></div>
+
+  <main class="page-main" style="flex:1;overflow:hidden;">
+    <div class="gov-layout">
+
+      <!-- ====================================================
+           LEFT PANEL: Incident Feed + Zone Table
+           ==================================================== -->
+      <aside class="gov-panel" aria-label="Incident feed and zone risk overview">
+
+        <div class="panel-tabs" role="tablist">
+          <button class="panel-tab active" id="tab-incidents" role="tab" aria-selected="true" aria-controls="tabcontent-incidents" data-target="tabcontent-incidents">
+            📡 Incidents
+          </button>
+          <button class="panel-tab" id="tab-zones" role="tab" aria-selected="false" aria-controls="tabcontent-zones" data-target="tabcontent-zones">
+            🗺️ Zone Risk
+          </button>
+        </div>
+
+        <div class="gov-panel__body">
+          <!-- Incidents Tab -->
+          <div id="tabcontent-incidents" class="panel-tab-content active" role="tabpanel" aria-labelledby="tab-incidents">
+            <div id="incident-feed" role="feed" aria-label="Ranked incident feed">
+              <div class="loading-state">Loading incident feed…</div>
+            </div>
+          </div>
+
+          <!-- Zone Risk Table Tab -->
+          <div id="tabcontent-zones" class="panel-tab-content" role="tabpanel" aria-labelledby="tab-zones">
+            <div class="glass-card" style="overflow-x:auto;">
+              <table class="zone-table" aria-label="Zone risk overview">
+                <thead>
+                  <tr>
+                    <th>Zone</th>
+                    <th colspan="2">Risk</th>
+                    <th>Level</th>
+                    <th>Rain</th>
+                    <th>Water</th>
+                    <th>Pop.</th>
+                  </tr>
+                </thead>
+                <tbody id="zone-table-body">
+                  <tr><td colspan="7" class="loading-state">Loading zones…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ====================================================
+           CENTER: Full-screen Leaflet Map
+           ==================================================== -->
+      <section style="position:relative;" aria-label="Interactive command center map">
+
+        <!-- Floating stats -->
+        <div class="map-stats-bar" role="region" aria-label="Live environment statistics">
+          <div class="stat-pill">
+            <div class="stat-pill__icon">🌧️</div>
+            <div>
+              <div class="stat-pill__val">110 mm/h</div>
+              <div class="stat-pill__lbl">Rainfall</div>
+            </div>
+          </div>
+          <div class="stat-pill">
+            <div class="stat-pill__icon">🌊</div>
+            <div>
+              <div class="stat-pill__val">4.2 m</div>
+              <div class="stat-pill__lbl">River Gauge</div>
+            </div>
+          </div>
+          <div class="stat-pill">
+            <div class="stat-pill__icon">🚨</div>
+            <div>
+              <div class="stat-pill__val">14,200</div>
+              <div class="stat-pill__lbl">Pop. at Risk</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="gov-map" role="application" aria-label="Command center map"></div>
+      </section>
+
+      <!-- ====================================================
+           RIGHT PANEL: AI Recommendations + Simulation
+           ==================================================== -->
+      <aside class="gov-panel gov-panel--right" aria-label="AI recommendations and simulation">
+
+        <div class="panel-tabs" role="tablist">
+          <button class="panel-tab active" id="tab-recs" role="tab" aria-selected="true" aria-controls="tabcontent-recs" data-target="tabcontent-recs">
+            🤖 AI Actions
+          </button>
+          <button class="panel-tab" id="tab-sim" role="tab" aria-selected="false" aria-controls="tabcontent-sim" data-target="tabcontent-sim">
+            ⚡ Simulation
+          </button>
+        </div>
+
+        <div class="gov-panel__body">
+
+          <!-- AI Recommendations Tab -->
+          <div id="tabcontent-recs" class="panel-tab-content active" role="tabpanel" aria-labelledby="tab-recs">
+            <p class="principle-strip">
+              🔒 <strong>Core Principle:</strong> AI recommends — authorized emergency authorities make final decisions.
+            </p>
+            <div id="recommendations-panel" aria-label="AI recommendations list">
+              <div class="loading-state">Loading recommendations…</div>
+            </div>
+          </div>
+
+          <!-- Simulation Panel Tab -->
+          <div id="tabcontent-sim" class="panel-tab-content" role="tabpanel" aria-labelledby="tab-sim">
+            <div class="glass-card sim-panel">
+              <div class="card-title">⚡ Disaster Simulation</div>
+              <p style="font-size:12px;color:var(--text-secondary);margin-bottom:var(--space-md);">
+                Adjust parameters to simulate zone risk scenarios.
+                <!--TODO (Simulation Engine): Wire sliders to re-render map polygons in real-time. -->
+              </p>
+
+              <!-- Zone selector -->
+              <div class="form-group">
+                <label class="form-label" for="sim-zone">Target Zone</label>
+                <select id="sim-zone" class="form-control">
+                  <option value="zone-a">Zone A — Riverside</option>
+                  <option value="zone-b">Zone B — Downtown</option>
+                  <option value="zone-c">Zone C — Westside</option>
+                  <option value="zone-d">Zone D — North Hills</option>
+                  <option value="zone-e">Zone E — Industrial Port</option>
+                </select>
+              </div>
+
+              <!-- Rainfall slider -->
+              <div class="sim-slider-group">
+                <div class="sim-slider-label">
+                  <label for="sim-rainfall">🌧️ Rainfall Intensity</label>
+                  <span id="sim-rainfall-val" class="sim-slider-val">110 mm/hr</span>
+                </div>
+                <input type="range" id="sim-rainfall" min="0" max="200" value="110" step="5"
+                       aria-label="Rainfall intensity in mm per hour" aria-valuemin="0" aria-valuemax="200">
+              </div>
+
+              <!-- Water level slider -->
+              <div class="sim-slider-group" style="margin-top:var(--space-md);">
+                <div class="sim-slider-label">
+                  <label for="sim-water">🌊 River Water Level</label>
+                  <span id="sim-water-val" class="sim-slider-val">4.2 m</span>
+                </div>
+                <input type="range" id="sim-water" min="0" max="8" value="4.2" step="0.1"
+                       aria-label="River water level in meters" aria-valuemin="0" aria-valuemax="8">
+              </div>
+
+              <button id="sim-run-btn" class="btn btn--primary" style="margin-top:var(--space-md);width:100%;"
+                      aria-label="Run simulation with current parameters">
+                ▶ Run Simulation
+              </button>
+
+              <!-- Result display -->
+              <div id="sim-result" aria-live="polite" aria-label="Simulation result"></div>
+            </div>
+          </div>
+
+        </div>
+      </aside>
+
+    </div>
+  </main>
+
+  <footer class="app-footer" role="contentinfo">
+    ⚠️ ClimateOS supports decisions; authorized emergency authorities make final calls.
+  </footer>
+
+  <!-- Leaflet -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- ES Module scripts -->
+  <script type="module">
+    import { initNavbar } from './js/components/navbar.js';
+    initNavbar('government');
+  </script>
+  <script type="module" src="js/government/command-map.js"></script>
+  <script type="module" src="js/government/incident-feed.js"></script>
+  <script type="module" src="js/government/recommendations.js"></script>
+  <script type="module" src="js/government/zone-table.js"></script>
+  <script type="module" src="js/government/simulation-panel.js"></script>
+
+  <!-- Tab switching logic -->
+  <script>
+    document.querySelectorAll('.panel-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const group = tab.closest('.gov-panel, aside');
+        group.querySelectorAll('.panel-tab').forEach(t => {
+          t.classList.remove('active');
+          t.setAttribute('aria-selected', 'false');
+        });
+        group.querySelectorAll('.panel-tab-content').forEach(c => c.classList.remove('active'));
+        tab.classList.add('active');
+        tab.setAttribute('aria-selected', 'true');
+        const target = document.getElementById(tab.dataset.target);
+        if (target) target.classList.add('active');
+      });
+    });
+  </script>
+
+</body>
+</html>

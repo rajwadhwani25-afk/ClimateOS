@@ -16,6 +16,17 @@
 </head>
 <body>
 
+  <!-- ===== SKELETON NAVIGATION STRIP (new pages) ===== -->
+  <div style="background:rgba(6,182,212,0.1);border-bottom:1px solid rgba(6,182,212,0.25);padding:8px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;font-size:12px;">
+    <span style="font-weight:700;color:#06b6d4;">🗂️ New Skeleton Pages:</span>
+    <a href="citizen.html"         style="color:#f1f5f9;text-decoration:none;padding:3px 10px;border-radius:6px;background:rgba(255,255,255,0.07);">📱 Citizen Home</a>
+    <a href="citizen-map.html"     style="color:#f1f5f9;text-decoration:none;padding:3px 10px;border-radius:6px;background:rgba(255,255,255,0.07);">🗺️ Map</a>
+    <a href="citizen-report.html"  style="color:#f1f5f9;text-decoration:none;padding:3px 10px;border-radius:6px;background:rgba(255,255,255,0.07);">📢 Report</a>
+    <a href="citizen-shelters.html"style="color:#f1f5f9;text-decoration:none;padding:3px 10px;border-radius:6px;background:rgba(255,255,255,0.07);">🏥 Shelters</a>
+    <a href="citizen-route.html"   style="color:#f1f5f9;text-decoration:none;padding:3px 10px;border-radius:6px;background:rgba(255,255,255,0.07);">🛡️ Safe Route</a>
+    <a href="government.html"      style="color:#f1f5f9;text-decoration:none;padding:3px 10px;border-radius:6px;background:rgba(6,182,212,0.2);border:1px solid rgba(6,182,212,0.4);">🏛️ Gov Dashboard</a>
+  </div>
+
   <!-- Top App Navigation Header -->
   <header class="app-header">
     <div class="brand">
@@ -249,11 +260,69 @@
     </div>
   </div>
 
-  <!-- Leaflet JS & App Scripts -->
+  <!-- Leaflet JS & App Scripts (original demo) -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="js/ai-engine.js"></script>
-  <script src="js/map.js"></script>
   <script src="js/simulation.js"></script>
   <script src="js/app.js"></script>
+  <!-- Map for original demo (inline classic script, Leaflet is a CDN global) -->
+  <script>
+    // Minimal map init for the original demo page
+    // The new ES-module map.js is used by citizen/government pages only
+    class ClimateMap {
+      constructor() { this.map = null; this.zonePolygons = {}; this.markers = []; this.routePolylines = []; }
+      init(id) {
+        if (!document.getElementById(id)) return;
+        this.map = L.map(id, { center: [18.5204, 73.8567], zoom: 13, zoomControl: false });
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, subdomains: 'abcd' }).addTo(this.map);
+        L.control.zoom({ position: 'bottomright' }).addTo(this.map);
+        this._renderZones(); this._renderShelters(); this._renderIncidents(); this._renderRoutes();
+      }
+      _renderZones() {
+        const zones = [
+          { id:'zone-a', coords:[[18.528,73.845],[18.535,73.860],[18.525,73.875],[18.515,73.855]], color:'#ef4444', opacity:0.35, label:'Zone A — Riverside<br>Risk: 88/100 (HIGH RISK)', perm:true },
+          { id:'zone-b', coords:[[18.515,73.855],[18.525,73.875],[18.505,73.885],[18.498,73.860]], color:'#f59e0b', opacity:0.25, label:'Zone B — Downtown<br>Risk: 64/100', perm:false },
+          { id:'zone-c', coords:[[18.515,73.830],[18.528,73.845],[18.515,73.855],[18.498,73.860],[18.495,73.838]], color:'#3b82f6', opacity:0.20, label:'Zone C — Westside', perm:false },
+          { id:'zone-d', coords:[[18.535,73.860],[18.550,73.870],[18.540,73.890],[18.525,73.875]], color:'#22c55e', opacity:0.15, label:'Zone D — North Hills', perm:false },
+        ];
+        zones.forEach(z => {
+          const p = L.polygon(z.coords, { color:z.color, fillColor:z.color, fillOpacity:z.opacity, weight:2 }).addTo(this.map);
+          if (z.label) p.bindTooltip(`<b>${z.label}</b>`, { permanent:z.perm, direction:'center', className:'map-zone-label' });
+          this.zonePolygons[z.id] = p;
+        });
+      }
+      _renderShelters() {
+        [{ name:'Shelter A — Community Hall', lat:18.505, lng:73.872, cap:'410/500', status:'ACTIVE' },
+         { name:'Shelter B — Central School',  lat:18.542, lng:73.878, cap:'45/400',  status:'READY'  }].forEach(s => {
+          const icon = L.divIcon({ className:'', html:`<div style="background:#06b6d4;color:#000;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 12px #06b6d4;">🏥</div>`, iconSize:[30,30] });
+          L.marker([s.lat,s.lng],{icon}).addTo(this.map).bindPopup(`<b>${s.name}</b><br>${s.status} · ${s.cap}`);
+        });
+      }
+      _renderIncidents() {
+        [{ title:'Trapped Civilians (12 people)', lat:18.526, lng:73.858, icon:'🆘', color:'#ef4444' },
+         { title:'Flooded Bridge & Road Closure', lat:18.523, lng:73.852, icon:'🚧', color:'#f59e0b' }].forEach(i => {
+          const icon = L.divIcon({ className:'', html:`<div style="background:${i.color};border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 0 10px ${i.color};" class="pulse">${i.icon}</div>`, iconSize:[28,28] });
+          L.marker([i.lat,i.lng],{icon}).addTo(this.map).bindPopup(`<b>${i.title}</b>`);
+        });
+      }
+      _renderRoutes() {
+        L.polyline([[18.528,73.848],[18.523,73.852],[18.515,73.855]], { color:'#ef4444', weight:4, dashArray:'6,8' }).addTo(this.map).bindTooltip('Route A: BLOCKED (Flooded)');
+        L.polyline([[18.528,73.848],[18.535,73.865],[18.542,73.878]], { color:'#10b981', weight:5 }).addTo(this.map).bindTooltip('Route C: SAFEST EVACUATION ROUTE', { permanent:true, direction:'top' });
+      }
+      updateZoneRiskVisual(zoneId, score) {
+        const p = this.zonePolygons[zoneId]; if (!p) return;
+        const c = score >= 75 ? '#ef4444' : score >= 45 ? '#f59e0b' : '#10b981';
+        const o = score >= 75 ? 0.40 : score >= 45 ? 0.25 : 0.15;
+        p.setStyle({ color:c, fillColor:c, fillOpacity:o });
+      }
+      addIncidentMarker(lat, lng, cat, title) {
+        const icons = { flood:'🌊', trapped:'🆘', fire:'🔥', road:'🚧' };
+        const icon = L.divIcon({ className:'', html:`<div style="background:#ef4444;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 0 10px #ef4444;" class="pulse">${icons[cat]||'⚠️'}</div>`, iconSize:[28,28] });
+        L.marker([lat,lng],{icon}).addTo(this.map).bindPopup(`<b>${title}</b>`).openPopup();
+        this.map.panTo([lat,lng]);
+      }
+    }
+    window.climateMap = new ClimateMap();
+  </script>
 </body>
 </html>

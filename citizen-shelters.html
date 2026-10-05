@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClimateOS — Shelters</title>
+  <meta name="description" content="Find nearby emergency shelters with real-time capacity and occupancy information during flood events.">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+  <div id="navbar-root"></div>
+
+  <main class="page-main">
+    <div class="citizen-page">
+
+      <div class="glass-card">
+        <h1 style="font-family:var(--font-display);font-size:22px;font-weight:700;margin-bottom:4px;">🏥 Emergency Shelters</h1>
+        <p style="font-size:13px;color:var(--text-secondary);">
+          Real-time shelter status. Sorted by distance from your location.
+        </p>
+        <!-- TODO (Shelter Intelligence): Add sort-by-distance once geolocation is wired. -->
+      </div>
+
+      <!-- Shelter list — populated dynamically -->
+      <div id="shelter-list" role="list" aria-label="Available shelters">
+        <div class="loading-state">Loading shelters…</div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    ⚠️ ClimateOS supports decisions; authorized emergency authorities make final calls.
+  </footer>
+
+  <script type="module">
+    import { initNavbar } from './js/components/navbar.js';
+    initNavbar('citizen');
+  </script>
+  <script type="module" src="js/citizen/shelters.js"></script>
+
+</body>
+</html>

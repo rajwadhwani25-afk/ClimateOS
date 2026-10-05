@@ -1,0 +1,223 @@
+/**
+ * ClimateOS — Layout CSS
+ * Page-level layout for citizen and government views.
+ * Depends on: base.css
+ */
+
+/* ============================================================
+   TOP NAVBAR
+   ============================================================ */
+.top-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  height: 60px;
+  background: var(--bg-sidebar);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-lg);
+  gap: var(--space-md);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.navbar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-shrink: 0;
+}
+
+.navbar__logo {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, var(--accent-cyan), #2563eb);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  box-shadow: 0 0 12px var(--accent-cyan-glow);
+}
+
+.navbar__title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  background: linear-gradient(90deg, #fff, var(--accent-cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.navbar__badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  background: rgba(6, 182, 212, 0.15);
+  color: var(--accent-cyan);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  border-radius: var(--radius-pill);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.navbar__links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  justify-content: center;
+}
+
+.navbar__link {
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.navbar__link:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.06);
+  text-decoration: none;
+}
+.navbar__link--active {
+  background: rgba(6, 182, 212, 0.15);
+  color: var(--accent-cyan);
+  font-weight: 600;
+}
+
+/* Mode switch buttons in navbar */
+.navbar__mode-switch {
+  display: flex;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.mode-btn {
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.mode-btn:hover { color: var(--text-primary); text-decoration: none; }
+.mode-btn--active {
+  background: var(--accent-cyan);
+  color: #050b14;
+}
+
+/* ============================================================
+   PAGE SHELL
+   ============================================================ */
+.page-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.page-main {
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ============================================================
+   CITIZEN LAYOUT (mobile-first, centered column)
+   ============================================================ */
+.citizen-page {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+/* Full-height map page */
+.page-map-full {
+  height: calc(100vh - 60px);
+  position: relative;
+}
+
+/* ============================================================
+   GOVERNMENT LAYOUT (3-column command center)
+   ============================================================ */
+.gov-layout {
+  display: grid;
+  grid-template-columns: 360px 1fr 380px;
+  height: calc(100vh - 60px);
+  overflow: hidden;
+}
+
+.gov-panel {
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.gov-panel--right {
+  border-right: none;
+  border-left: 1px solid var(--border-color);
+}
+
+.gov-panel__header {
+  padding: var(--space-md) var(--space-md);
+  border-bottom: 1px solid var(--border-color);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.gov-panel__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.app-footer {
+  background: var(--bg-sidebar);
+  border-top: 1px solid var(--border-color);
+  padding: var(--space-sm) var(--space-lg);
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+  .gov-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+    height: auto;
+  }
+
+  .gov-panel {
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .navbar__links { display: none; }
+  .top-navbar { padding: 0 var(--space-md); }
+}
