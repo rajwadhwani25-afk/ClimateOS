@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClimateOS — Citizen App</title>
+  <meta name="description" content="ClimateOS Citizen Mode: Real-time flood risk status, safe routes, nearby shelters, and incident reporting for your location.">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+  <!-- Navbar mount point -->
+  <div id="navbar-root"></div>
+
+  <main class="page-main">
+    <div class="citizen-page">
+
+      <!-- Emergency Alert Banner -->
+      <div class="glass-card" style="border-left:4px solid var(--risk-severe);background:linear-gradient(135deg,rgba(239,68,68,0.12),rgba(249,115,22,0.06));" role="alert" aria-live="assertive">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <span class="risk-badge risk-badge--severe pulse">🚨 FLASH FLOOD WARNING</span>
+        </div>
+        <p style="font-size:14px;font-weight:600;color:var(--text-primary);line-height:1.5;">
+          Flash flood warning active in your zone. Water levels rising rapidly near Riverside Ave.
+          Move to high ground or a designated shelter immediately.
+        </p>
+        <button id="btn-use-location" class="btn btn--cyan" style="margin-top:10px;width:100%;" aria-label="Use GPS to detect your zone">
+          📍 Use My Location
+        </button>
+      </div>
+
+      <!-- Risk Status Card (dynamic) -->
+      <div id="citizen-risk-card" class="risk-card" aria-label="Your zone risk status">
+        <!-- Populated by js/citizen/home.js -->
+        <div class="loading-state">Loading risk status…</div>
+      </div>
+
+      <!-- Report Incident CTA -->
+      <a href="citizen-report.html" class="btn btn--primary btn-cta" role="button" id="btn-report-cta" aria-label="Report an emergency incident">
+        <span>📢 Report Emergency Incident</span>
+        <span>→</span>
+      </a>
+
+      <!-- Nearest Shelters Card (dynamic) -->
+      <div id="citizen-shelter-card" class="glass-card" aria-label="Nearest shelter information">
+        <div class="loading-state">Loading shelters…</div>
+      </div>
+
+      <!-- Safe Route CTA -->
+      <a href="citizen-route.html" class="glass-card" style="display:flex;justify-content:space-between;align-items:center;text-decoration:none;" aria-label="View safe evacuation route">
+        <div>
+          <div class="card-title">🛡️ Safe Evacuation Route</div>
+          <div style="font-size:13px;font-weight:600;color:var(--risk-low);">Route C — Elevated Highway Bypass</div>
+          <div style="font-size:12px;color:var(--text-muted);">2.4 km • ~12 mins • Safest</div>
+        </div>
+        <span style="color:var(--accent-cyan);font-size:20px;">→</span>
+      </a>
+
+    </div>
+  </main>
+
+  <!-- Footer with persistent disclaimer -->
+  <footer class="app-footer" role="contentinfo">
+    ⚠️ ClimateOS supports decisions; authorized emergency authorities make final calls.
+  </footer>
+
+  <!-- Scripts (ES modules) -->
+  <script type="module">
+    import { initNavbar } from './js/components/navbar.js';
+    initNavbar('citizen');
+  </script>
+  <script type="module" src="js/citizen/home.js"></script>
+
+</body>
+</html>

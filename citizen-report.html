@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClimateOS — Report Incident</title>
+  <meta name="description" content="Report a flood, fire, road blockage, or emergency to ClimateOS. Your report helps emergency responders act faster.">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+  <div id="navbar-root"></div>
+
+  <main class="page-main">
+    <div class="citizen-page">
+
+      <div class="glass-card">
+        <h1 style="font-family:var(--font-display);font-size:22px;font-weight:700;margin-bottom:4px;">📢 Report Incident</h1>
+        <p style="font-size:13px;color:var(--text-secondary);">
+          Your report is verified by AI and sent to emergency authorities.
+          High-confidence reports are actioned within minutes.
+        </p>
+      </div>
+
+      <div class="glass-card">
+        <form id="form-citizen-report" novalidate>
+
+          <!-- Incident Category -->
+          <div class="form-group">
+            <label class="form-label" for="rep-category">Incident Category *</label>
+            <select id="rep-category" class="form-control" required aria-required="true">
+              <!-- Populated dynamically by report.js -->
+            </select>
+          </div>
+
+          <!-- Location -->
+          <div class="form-group">
+            <label class="form-label" for="rep-location">Location / Address</label>
+            <input type="text" id="rep-location" class="form-control"
+                   placeholder="e.g. 142 Riverside Avenue, Zone A"
+                   autocomplete="street-address">
+            <button type="button" id="btn-report-location" class="btn btn--cyan" style="margin-top:6px;width:100%;" aria-label="Capture current GPS location">
+              📍 Use My Location
+            </button>
+            <span id="rep-location-display" style="font-size:11px;color:var(--text-muted);margin-top:4px;display:block;"></span>
+          </div>
+
+          <!-- Description -->
+          <div class="form-group">
+            <label class="form-label" for="rep-description">Description *</label>
+            <textarea id="rep-description" class="form-control" rows="4"
+                      placeholder="Describe what you see: water depth, number of people affected, accessibility…"
+                      required aria-required="true"></textarea>
+          </div>
+
+          <!-- Trapped Count -->
+          <div class="form-group">
+            <label class="form-label" for="rep-trapped">Trapped People (if any)</label>
+            <input type="number" id="rep-trapped" class="form-control" min="0" placeholder="0" inputmode="numeric">
+          </div>
+
+          <!-- Injured Count -->
+          <div class="form-group">
+            <label class="form-label" for="rep-injured">Injured People (if any)</label>
+            <input type="number" id="rep-injured" class="form-control" min="0" placeholder="0" inputmode="numeric">
+          </div>
+
+          <!-- Photo Upload -->
+          <div class="form-group">
+            <label class="form-label" for="rep-photo">Attach Photo (Optional)</label>
+            <input type="file" id="rep-photo" class="form-control" accept="image/*" capture="environment"
+                   aria-label="Upload a photo of the incident">
+            <!-- TODO (AI Report Verification): Photo will be sent to computer vision
+                 endpoint for flood/damage detection and confidence boosting. -->
+            <div id="rep-photo-preview"></div>
+          </div>
+
+          <!-- Submit -->
+          <button type="submit" class="btn btn--primary btn-cta" id="btn-submit-report" aria-label="Submit your incident report">
+            <span>Submit to AI Verification</span>
+            <span>→</span>
+          </button>
+
+        </form>
+
+        <!-- Status message area -->
+        <div id="rep-status" role="status" aria-live="polite"></div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    ⚠️ ClimateOS supports decisions; authorized emergency authorities make final calls.
+  </footer>
+
+  <script type="module">
+    import { initNavbar } from './js/components/navbar.js';
+    initNavbar('citizen');
+  </script>
+  <script type="module" src="js/citizen/report.js"></script>
+
+</body>
+</html>

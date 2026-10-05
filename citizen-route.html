@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClimateOS — Safe Route</title>
+  <meta name="description" content="ClimateOS Safe Route Navigator: AI-calculated safest evacuation route avoiding flooded roads and blocked bridges.">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+  <div id="navbar-root"></div>
+
+  <main class="page-main">
+    <div class="citizen-page">
+      <div id="safe-route-content">
+        <!-- Populated by js/citizen/safe-route.js -->
+        <div class="loading-state">Loading safe route…</div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    ⚠️ ClimateOS supports decisions; authorized emergency authorities make final calls.
+  </footer>
+
+  <script type="module">
+    import { initNavbar } from './js/components/navbar.js';
+    initNavbar('citizen');
+  </script>
+  <script type="module" src="js/citizen/safe-route.js"></script>
+
+</body>
+</html>
