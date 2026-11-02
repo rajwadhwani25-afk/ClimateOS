@@ -24,17 +24,46 @@
     <div class="citizen-page">
 
       <div class="glass-card">
-        <h1 style="font-family:var(--font-display);font-size:22px;font-weight:700;margin-bottom:4px;">🏥 Emergency Shelters</h1>
-        <p style="font-size:13px;color:var(--text-secondary);">
-          Real-time shelter status. Sorted by distance from your location.
-        </p>
-        <!-- TODO (Shelter Intelligence): Add sort-by-distance once geolocation is wired. -->
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:var(--space-sm);">
+          <div>
+            <h1 style="font-family:var(--font-display);font-size:22px;font-weight:700;margin-bottom:2px;">🏥 Safe Evacuation Shelters</h1>
+            <p style="font-size:13px;color:var(--text-secondary);">
+              Designated high-ground relief centers with emergency provisions and medical care.
+            </p>
+          </div>
+          <span class="badge badge--high" id="shelters-count-badge">Live Updates</span>
+        </div>
+
+        <!-- Shelter summary pills -->
+        <div class="shelter-summary-grid">
+          <div class="shelter-summary-pill">
+            <span class="summary-val text-green" id="shelters-open-count">3</span>
+            <span class="summary-lbl">Open Facilities</span>
+          </div>
+          <div class="shelter-summary-pill">
+            <span class="summary-val text-cyan" id="shelters-beds-count">1,115</span>
+            <span class="summary-lbl">Beds Available</span>
+          </div>
+          <div class="shelter-summary-pill">
+            <span class="summary-val text-orange">0.8 km</span>
+            <span class="summary-lbl">Nearest Hub</span>
+          </div>
+        </div>
+
+        <!-- Filter chips -->
+        <div class="shelter-filters" id="shelter-filters" role="group" aria-label="Filter Shelters">
+          <button type="button" class="filter-chip active" data-filter="all">All Shelters</button>
+          <button type="button" class="filter-chip" data-filter="open">🟢 Open Now</button>
+          <button type="button" class="filter-chip" data-filter="accessible">♿ Accessible</button>
+          <button type="button" class="filter-chip" data-filter="medical">🩺 Medical Unit</button>
+        </div>
       </div>
 
       <!-- Shelter list — populated dynamically -->
-      <div id="shelter-list" role="list" aria-label="Available shelters">
+      <div id="shelter-list" role="list" aria-label="Available shelters" class="shelter-cards-list">
         <div class="loading-state">Loading shelters…</div>
       </div>
+
 
     </div>
   </main>

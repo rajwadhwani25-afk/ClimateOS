@@ -4,7 +4,8 @@
  *
  * Usage:
  *   import { initMap, renderRiskZonesGeoJSON, addIncidentMarker,
- *            addShelterMarker, updateZoneStyle } from '../map.js';
+ *            addShelterMarker, updateZoneStyle, updateMapStatsBar,
+ *            enterSimulationMode, exitSimulationMode } from '../map.js';
  */
 
 // City center: fictional "Riverdale" (mapped to Pune coordinates for demo)
@@ -12,9 +13,31 @@ const CITY_CENTER = [18.5204, 73.8567];
 const DEFAULT_ZOOM = 13;
 
 let _map = null;
-let _zoneLayerGroup = null;
+let _zoneLayerGroup    = null;
 let _incidentLayerGroup = null;
-let _shelterLayerGroup = null;
+let _shelterLayerGroup  = null;
+let _simBanner         = null; // Leaflet control for simulation mode overlay
+
+// ---------------------------------------------------------------------------
+// Risk level → style
+// ---------------------------------------------------------------------------
+const RISK_STYLES = {
+  severe:   { color: "#ef4444", fillColor: "#ef4444", fillOpacity: 0.45, weight: 2.5 },
+  high:     { color: "#f97316", fillColor: "#f97316", fillOpacity: 0.35, weight: 2   },
+  moderate: { color: "#f59e0b", fillColor: "#f59e0b", fillOpacity: 0.25, weight: 1.5 },
+  low:      { color: "#22c55e", fillColor: "#22c55e", fillOpacity: 0.15, weight: 1   },
+};
+
+function _riskStyle(riskLevel) {
+  return RISK_STYLES[riskLevel] || RISK_STYLES.low;
+}
+
+export const RISK_COLORS = {
+  severe:   "#ef4444",
+  high:     "#f97316",
+  moderate: "#f59e0b",
+  low:      "#22c55e",
+};
 
 // ---------------------------------------------------------------------------
 // Init
@@ -41,7 +64,7 @@ export function initMap(containerId, options = {}) {
 
   L.control.zoom({ position: "bottomright" }).addTo(_map);
 
-  _zoneLayerGroup    = L.layerGroup().addTo(_map);
+  _zoneLayerGroup     = L.layerGroup().addTo(_map);
   _incidentLayerGroup = L.layerGroup().addTo(_map);
   _shelterLayerGroup  = L.layerGroup().addTo(_map);
 
@@ -56,20 +79,9 @@ export function getMap() {
 // Risk Zone rendering from GeoJSON
 // ---------------------------------------------------------------------------
 
-/** Map risk_level → Leaflet style */
-function _riskStyle(riskLevel) {
-  const styles = {
-    severe:   { color: "#ef4444", fillColor: "#ef4444", fillOpacity: 0.40, weight: 2 },
-    high:     { color: "#f97316", fillColor: "#f97316", fillOpacity: 0.30, weight: 2 },
-    moderate: { color: "#f59e0b", fillColor: "#f59e0b", fillOpacity: 0.22, weight: 1 },
-    low:      { color: "#22c55e", fillColor: "#22c55e", fillOpacity: 0.15, weight: 1 },
-  };
-  return styles[riskLevel] || styles.low;
-}
-
 /**
- * Render a zones GeoJSON FeatureCollection onto the map.
- * @param {Object} geojson - full zones GeoJSON or array of zone objects
+ * Render a zones array onto the map.
+ * @param {Array} zones - array of zone objects with .geometry and .risk_level
  */
 export function renderRiskZonesGeoJSON(zones) {
   if (!_map) return;
@@ -78,12 +90,14 @@ export function renderRiskZonesGeoJSON(zones) {
   zones.forEach(zone => {
     if (!zone.geometry) return;
     const style = _riskStyle(zone.risk_level);
-    const layer = L.geoJSON(
-      { type: "Feature", geometry: zone.geometry, properties: zone },
+    L.geoJSON(
+      { type: "Feature", geometry: zone.geometry, properties: { ...zone, _zoneId: zone.id } },
       {
         style: () => style,
         onEachFeature: (feature, layer) => {
           const p = feature.properties;
+          // Store zoneId on the layer for fast lookup
+          layer._climateZoneId = p.id || p._zoneId;
           layer.bindTooltip(
             `<b>${p.name}</b><br>Risk: ${p.risk_score}/100 (${p.status})`,
             { permanent: p.risk_level === "severe", direction: "center", className: "map-zone-label" }
@@ -96,18 +110,148 @@ export function renderRiskZonesGeoJSON(zones) {
 
 /**
  * Dynamically update the fill style for a single zone by ID.
- * Used by the Simulation Panel when sliders change.
- * @param {string} zoneId
- * @param {string} riskLevel  - 'low' | 'moderate' | 'high' | 'severe'
+ * Triggers a CSS pulse animation to make the change feel alive.
+ *
+ * @param {string} zoneId      - e.g. "zone-a"
+ * @param {string} riskLevel   - 'low' | 'moderate' | 'high' | 'severe'
+ * @param {number} [riskScore] - optional score for tooltip update
  */
-export function updateZoneStyle(zoneId, riskLevel) {
-  // TODO (Simulation Engine): When real-time updates arrive via WebSocket,
-  // call this function to re-color zones without a full map re-render.
-  _zoneLayerGroup.eachLayer(layer => {
-    if (layer.feature?.properties?.id === zoneId) {
-      layer.setStyle(_riskStyle(riskLevel));
-    }
+export function updateZoneStyle(zoneId, riskLevel, riskScore = null) {
+  if (!_zoneLayerGroup) return;
+
+  const newStyle = _riskStyle(riskLevel);
+
+  _zoneLayerGroup.eachLayer(outerLayer => {
+    // Handle both direct GeoJSON layers and nested LayerGroups from L.geoJSON()
+    const inner = outerLayer._layers
+      ? Object.values(outerLayer._layers)
+      : [outerLayer];
+
+    inner.forEach(layer => {
+      const id = layer._climateZoneId
+        || layer.feature?.properties?.id
+        || layer.feature?.properties?._zoneId;
+
+      if (id !== zoneId) return;
+
+      // 1. Apply new Leaflet style
+      layer.setStyle(newStyle);
+
+      // 2. Pulse animation — flash the polygon border
+      _pulseZoneLayer(layer, newStyle);
+
+      // 3. Update tooltip if score provided
+      if (riskScore !== null) {
+        const p = layer.feature?.properties || {};
+        const tooltipContent = `<b>${p.name || zoneId}</b><br>⚡ Simulated: ${riskScore}/100 (${riskLevel.toUpperCase()})`;
+        if (layer.getTooltip()) {
+          layer.getTooltip().setContent(tooltipContent);
+        } else {
+          layer.bindTooltip(tooltipContent, {
+            permanent: riskLevel === "severe",
+            direction: "center",
+            className: "map-zone-label",
+          });
+        }
+      }
+    });
   });
+}
+
+/**
+ * Flash a quick pulse on a Leaflet layer to signal a live update.
+ * We do 3 rapid style toggles using CSS transition timing.
+ */
+function _pulseZoneLayer(layer, finalStyle) {
+  const pulseStyle = {
+    ...finalStyle,
+    fillOpacity: Math.min(0.85, finalStyle.fillOpacity + 0.4),
+    weight: finalStyle.weight + 2,
+    opacity: 1,
+  };
+
+  let count = 0;
+  const interval = setInterval(() => {
+    layer.setStyle(count % 2 === 0 ? pulseStyle : finalStyle);
+    count++;
+    if (count >= 6) {
+      clearInterval(interval);
+      layer.setStyle(finalStyle); // ensure we end on final
+    }
+  }, 120);
+}
+
+// ---------------------------------------------------------------------------
+// Simulation Mode Banner
+// ---------------------------------------------------------------------------
+
+/**
+ * Show a "SIMULATION MODE" banner on the map to signal it's in sim state.
+ * @param {string} zoneLabel - e.g. "Zone A — Riverside"
+ * @param {string} riskLevel - 'low' | 'moderate' | 'high' | 'severe'
+ */
+export function enterSimulationMode(zoneLabel, riskLevel) {
+  if (!_map) return;
+  exitSimulationMode(); // clear any existing
+
+  const color = RISK_COLORS[riskLevel] || "#f59e0b";
+
+  const SimBanner = L.Control.extend({
+    onAdd() {
+      const div = L.DomUtil.create("div", "sim-map-banner");
+      div.innerHTML = `
+        <span class="sim-map-banner__dot" style="background:${color};box-shadow:0 0 8px ${color};"></span>
+        <span class="sim-map-banner__text">
+          SIMULATION MODE &mdash; <strong>${zoneLabel}</strong>
+        </span>
+        <span class="sim-map-banner__risk" style="color:${color};">${riskLevel.toUpperCase()}</span>
+      `;
+      return div;
+    },
+    onRemove() {},
+  });
+
+  _simBanner = new SimBanner({ position: "topright" });
+  _simBanner.addTo(_map);
+}
+
+/**
+ * Remove simulation mode banner and restore normal appearance.
+ */
+export function exitSimulationMode() {
+  if (_simBanner && _map) {
+    _map.removeControl(_simBanner);
+    _simBanner = null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Stats Bar sync
+// ---------------------------------------------------------------------------
+
+/**
+ * Update the floating map stats pills (rainfall, water level, pop at risk).
+ * @param {number} rainfallMmHr
+ * @param {number} waterLevelM
+ * @param {number} [popAtRisk]
+ */
+export function updateMapStatsBar(rainfallMmHr, waterLevelM, popAtRisk = null) {
+  const rainfallEl = document.querySelector(".stat-pill__val[data-stat='rainfall']");
+  const waterEl    = document.querySelector(".stat-pill__val[data-stat='water']");
+  const popEl      = document.querySelector(".stat-pill__val[data-stat='pop']");
+
+  if (rainfallEl) _animateNumber(rainfallEl, `${rainfallMmHr} mm/h`);
+  if (waterEl)    _animateNumber(waterEl,    `${waterLevelM} m`);
+  if (popAtRisk !== null && popEl) _animateNumber(popEl, popAtRisk.toLocaleString());
+}
+
+function _animateNumber(el, newVal) {
+  el.style.transition = "opacity 0.2s";
+  el.style.opacity = "0";
+  setTimeout(() => {
+    el.textContent = newVal;
+    el.style.opacity = "1";
+  }, 200);
 }
 
 // ---------------------------------------------------------------------------

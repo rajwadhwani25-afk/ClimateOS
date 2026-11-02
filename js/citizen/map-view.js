@@ -29,8 +29,10 @@ const _FALLBACK_ZONES = [
 // ---------------------------------------------------------------------------
 // Init
 // ---------------------------------------------------------------------------
+let _mapInstance = null;
+
 async function init() {
-  initMap("citizen-map");
+  _mapInstance = initMap("citizen-map");
 
   const [zones, shelters, incidents] = await Promise.all([
     getZonesRisk(),
@@ -43,8 +45,41 @@ async function init() {
   (shelters || []).forEach(s => addShelterMarker(s));
   (incidents || []).forEach(inc => addIncidentMarker(inc));
 
-  // TODO (Safe Route): Render the recommended safe route polyline on this map.
-  // Call GET /api/safe-route once the routing engine is implemented.
+  setupLocateButton();
+}
+
+function setupLocateButton() {
+  const btn = document.getElementById("btn-locate-citizen");
+  if (!btn || !_mapInstance) return;
+
+  btn.addEventListener("click", () => {
+    btn.textContent = "📍 Locating…";
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          _mapInstance.setView([lat, lng], 15);
+          L.circle([lat, lng], {
+            radius: 120,
+            color: "var(--accent-cyan)",
+            fillColor: "var(--accent-cyan)",
+            fillOpacity: 0.3,
+          }).addTo(_mapInstance).bindPopup("<b>📍 Your Current Location</b>").openPopup();
+          btn.textContent = "✓ Located";
+        },
+        () => {
+          // Default to Pune Riverside
+          _mapInstance.setView([18.525, 73.850], 15);
+          btn.textContent = "📍 Pune Riverside";
+        }
+      );
+    } else {
+      _mapInstance.setView([18.525, 73.850], 15);
+      btn.textContent = "📍 Pune Riverside";
+    }
+  });
 }
 
 document.addEventListener("DOMContentLoaded", init);
+

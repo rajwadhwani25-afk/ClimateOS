@@ -73,28 +73,49 @@ def _get_advice(risk_level: str) -> str:
         "low":      "Situation manageable. Continue monitoring rainfall and river gauge levels.",
     }.get(risk_level, "Monitor conditions.")
 
-
 # ---------------------------------------------------------------------------
 # Endpoint
 # ---------------------------------------------------------------------------
+
+# Propagation dampening — neighboring zones are affected by a fraction of the risk
+_PROPAGATION_FACTOR = {
+    "zone-a": {"zone-b": 0.75, "zone-c": 0.65, "zone-d": 0.30, "zone-e": 0.55},
+    "zone-b": {"zone-a": 0.80, "zone-c": 0.70, "zone-d": 0.35, "zone-e": 0.60},
+    "zone-c": {"zone-a": 0.70, "zone-b": 0.65, "zone-d": 0.40, "zone-e": 0.50},
+    "zone-d": {"zone-a": 0.40, "zone-b": 0.45, "zone-c": 0.50, "zone-e": 0.35},
+    "zone-e": {"zone-a": 0.60, "zone-b": 0.65, "zone-c": 0.55, "zone-d": 0.30},
+}
 
 @router.post("/simulation")
 def run_simulation(body: SimulationInput):
     """
     Run a simulation scenario with the given rainfall and water level.
-    Returns updated zone risk scores (mock calculation).
+    Returns:
+      - updated_zone_risk : full risk object for the selected zone
+      - all_zones_risk    : propagated risk for all 5 zones (for full map re-render)
 
-    UI: This endpoint powers the Simulation Panel sliders in Government Mode.
-    TODO (Simulation Engine): Extend to accept multiple zones simultaneously
-    and return a full updated GeoJSON risk layer for map re-rendering.
+    UI: Powers the Simulation Panel sliders in Government Mode.
+    The frontend uses all_zones_risk to re-color every polygon simultaneously.
     """
-    result = _calculate_mock_risk(body.rainfall_mm_hr, body.water_level_m, body.zone_id)
+    # Primary zone
+    primary = _calculate_mock_risk(body.rainfall_mm_hr, body.water_level_m, body.zone_id)
+
+    # Propagated risk to neighboring zones
+    all_zones: dict = {body.zone_id: primary}
+    for other_id, factor in _PROPAGATION_FACTOR.get(body.zone_id, {}).items():
+        all_zones[other_id] = _calculate_mock_risk(
+            body.rainfall_mm_hr * factor,
+            body.water_level_m  * factor,
+            other_id,
+        )
+
     return {
         "simulation_input": {
             "rainfall_mm_hr": body.rainfall_mm_hr,
             "water_level_m":  body.water_level_m,
             "zone_id":        body.zone_id,
         },
-        "updated_zone_risk": result,
-        "note": "Mock calculation. Real AI risk engine not yet connected.",
+        "updated_zone_risk": primary,
+        "all_zones_risk":    list(all_zones.values()),
+        "note": "Mock calculation with propagation model. Real risk engine not yet connected.",
     }

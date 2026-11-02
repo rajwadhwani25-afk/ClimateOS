@@ -22,21 +22,93 @@
   <style>
     body { overflow: hidden; }
     #citizen-map { width: 100%; height: calc(100vh - 60px); }
+
+    /* Floating Alert Banner */
+    .map-alert-banner {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      right: 14px;
+      max-width: 480px;
+      margin: 0 auto;
+      z-index: 500;
+      background: rgba(13, 19, 34, 0.94);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+      animation: slideDown 0.3s ease;
+    }
+    .map-alert-banner__content {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .map-alert-banner__text {
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+      line-height: 1.3;
+    }
+
+    /* Floating GPS button */
+    .btn-locate-fab {
+      position: absolute;
+      bottom: 40px;
+      right: 16px;
+      z-index: 500;
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-highlight);
+      border-radius: var(--radius-pill);
+      padding: 10px 16px;
+      color: var(--accent-cyan);
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: var(--shadow-card);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-locate-fab:hover {
+      background: var(--accent-cyan);
+      color: #030712;
+      transform: translateY(-2px);
+      box-shadow: 0 0 16px var(--accent-cyan-glow);
+    }
+
+    /* Modern Legend */
     .map-legend {
       position: absolute;
       bottom: 40px;
       left: 16px;
       z-index: 500;
-      background: rgba(13,19,34,0.9);
+      background: rgba(13, 19, 34, 0.92);
+      backdrop-filter: blur(14px);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-md);
-      padding: 10px 14px;
-      font-size: 12px;
-      backdrop-filter: blur(10px);
+      padding: 12px 14px;
+      font-size: 11px;
+      box-shadow: var(--shadow-card);
     }
-    .map-legend__title { font-weight: 700; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; font-size: 10px; }
-    .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-    .legend-dot  { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+    .map-legend__title {
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      font-size: 10px;
+    }
+    .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; color: var(--text-secondary); font-weight: 500; }
+    .legend-dot  { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
   </style>
 </head>
 <body>
@@ -44,18 +116,39 @@
   <div id="navbar-root"></div>
 
   <main class="page-main" style="position:relative;">
+    <!-- Top Alert HUD -->
+    <div class="map-alert-banner" role="alert">
+      <div class="map-alert-banner__content">
+        <span class="status-beacon status-beacon--red"></span>
+        <div class="map-alert-banner__text">
+          <strong>Sector A Warning:</strong> Mutha River level 4.2m. Evacuate to Shelter B.
+        </div>
+      </div>
+      <a href="citizen-route.html" class="btn btn--primary btn-xs" style="text-decoration:none;white-space:nowrap;">
+        Evac Route →
+      </a>
+    </div>
+
     <div id="citizen-map" role="application" aria-label="Interactive flood risk map"></div>
+
+    <!-- Floating Locate Me Button -->
+    <button class="btn-locate-fab" id="btn-locate-citizen" aria-label="Center map on my location">
+      📍 My Location
+    </button>
 
     <!-- Map Legend -->
     <div class="map-legend" aria-label="Map legend">
-      <div class="map-legend__title">Risk Levels</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--risk-severe);"></div> Severe</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--risk-high);"></div> High</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--risk-moderate);"></div> Moderate</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--risk-low);"></div> Low</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--accent-cyan);"></div> 🏥 Shelter</div>
+      <div class="map-legend__title">Zone Hazard Index</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--risk-severe);box-shadow:0 0 6px var(--risk-severe);"></div> Severe Risk (&gt;80)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--risk-high);"></div> High Risk (60-80)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--risk-moderate);"></div> Moderate (35-60)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--risk-low);"></div> Safe / Low (&lt;35)</div>
+      <div class="legend-item" style="margin-top:6px;border-top:1px solid rgba(255,255,255,0.08);padding-top:6px;">
+        <div class="legend-dot" style="background:var(--accent-cyan);box-shadow:0 0 6px var(--accent-cyan);"></div> 🏥 Safe Shelter
+      </div>
     </div>
   </main>
+
 
   <footer class="app-footer">
     ⚠️ ClimateOS supports decisions; authorized emergency authorities make final calls.

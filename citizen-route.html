@@ -11,6 +11,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
 
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
   <!-- Styles -->
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/layout.css">
@@ -23,8 +26,7 @@
   <main class="page-main">
     <div class="citizen-page">
       <div id="safe-route-content">
-        <!-- Populated by js/citizen/safe-route.js -->
-        <div class="loading-state">Loading safe route…</div>
+        <div class="loading-state">Calculating optimal evacuation corridor…</div>
       </div>
     </div>
   </main>
@@ -32,6 +34,9 @@
   <footer class="app-footer">
     ⚠️ ClimateOS supports decisions; authorized emergency authorities make final calls.
   </footer>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script type="module">
     import { initNavbar } from './js/components/navbar.js';
@@ -41,3 +46,4 @@
 
 </body>
 </html>
+

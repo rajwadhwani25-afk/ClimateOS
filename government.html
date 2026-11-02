@@ -23,6 +23,32 @@
     body { overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
     #gov-map { width: 100%; height: 100%; }
 
+    /* ── Simulation mode map banner (Leaflet Control) ── */
+    .sim-map-banner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(13,19,34,0.92);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(249,115,22,0.4);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+      box-shadow: 0 4px 20px rgba(249,115,22,0.2);
+      animation: fadeIn 0.3s ease;
+      pointer-events: none;
+    }
+    .sim-map-banner__dot {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      animation: pulse 1.5s infinite;
+    }
+    .sim-map-banner__text { color: var(--text-secondary); }
+    .sim-map-banner__risk { font-weight: 800; letter-spacing: 0.5px; margin-left: 4px; }
+
     /* Tab navigation inside panels */
     .panel-tabs {
       display: flex;
@@ -90,6 +116,23 @@
 
   <div id="navbar-root"></div>
 
+  <!-- Command Center Live Protocol Ticker -->
+  <div class="gov-command-ticker" role="region" aria-label="Disaster protocol status">
+    <div class="ticker-left">
+      <span class="status-beacon status-beacon--red"></span>
+      <span class="ticker-label">DISASTER DEFENSE PROTOCOL LEVEL 2</span>
+      <span class="ticker-sep">•</span>
+      <span class="ticker-sub">Pune DDMA Emergency Operations</span>
+    </div>
+    <div class="ticker-right">
+      <span class="ticker-stat">🌧️ Basin Avg: <strong>98 mm/h</strong></span>
+      <span class="ticker-sep">•</span>
+      <span class="ticker-stat">🌊 River Gauge: <strong>4.2m (+0.4m/h)</strong></span>
+      <span class="ticker-sep">•</span>
+      <span class="ticker-stat">🚨 Risk Pop: <strong>14,200</strong></span>
+    </div>
+  </div>
+
   <main class="page-main" style="flex:1;overflow:hidden;">
     <div class="gov-layout">
 
@@ -101,6 +144,8 @@
         <div class="panel-tabs" role="tablist">
           <button class="panel-tab active" id="tab-incidents" role="tab" aria-selected="true" aria-controls="tabcontent-incidents" data-target="tabcontent-incidents">
             📡 Incidents
+            <span id="sse-status-dot" class="sse-dot" data-status="connecting" title="Connecting…"></span>
+            <span id="incident-live-count" class="incident-live-count" style="display:none;">0</span>
           </button>
           <button class="panel-tab" id="tab-zones" role="tab" aria-selected="false" aria-controls="tabcontent-zones" data-target="tabcontent-zones">
             🗺️ Zone Risk
@@ -110,6 +155,18 @@
         <div class="gov-panel__body">
           <!-- Incidents Tab -->
           <div id="tabcontent-incidents" class="panel-tab-content active" role="tabpanel" aria-labelledby="tab-incidents">
+            
+            <!-- Quick search & filter -->
+            <div class="incident-controls">
+              <input type="text" id="incident-search-input" class="form-control" placeholder="🔍 Search incidents, locations, victims…" style="padding:6px 10px;font-size:12px;">
+              <div class="incident-filter-chips" id="incident-filter-chips">
+                <button type="button" class="inc-chip active" data-filter="all">All</button>
+                <button type="button" class="inc-chip" data-filter="trapped">🆘 Trapped</button>
+                <button type="button" class="inc-chip" data-filter="flood">🌊 Flood</button>
+                <button type="button" class="inc-chip" data-filter="medical">🚑 Medical</button>
+              </div>
+            </div>
+
             <div id="incident-feed" role="feed" aria-label="Ranked incident feed">
               <div class="loading-state">Loading incident feed…</div>
             </div>
@@ -143,27 +200,34 @@
            ==================================================== -->
       <section style="position:relative;" aria-label="Interactive command center map">
 
-        <!-- Floating stats -->
+        <!-- Floating stats bar with trend metrics -->
         <div class="map-stats-bar" role="region" aria-label="Live environment statistics">
           <div class="stat-pill">
             <div class="stat-pill__icon">🌧️</div>
             <div>
-              <div class="stat-pill__val">110 mm/h</div>
-              <div class="stat-pill__lbl">Rainfall</div>
+              <div class="stat-pill__val" data-stat="rainfall">110 mm/h</div>
+              <div class="stat-pill__lbl">Rainfall <span style="color:var(--risk-severe);font-weight:700;">↑ High</span></div>
             </div>
           </div>
           <div class="stat-pill">
             <div class="stat-pill__icon">🌊</div>
             <div>
-              <div class="stat-pill__val">4.2 m</div>
-              <div class="stat-pill__lbl">River Gauge</div>
+              <div class="stat-pill__val" data-stat="water">4.2 m</div>
+              <div class="stat-pill__lbl">River Gauge <span style="color:var(--risk-severe);font-weight:700;">↑ Critical</span></div>
             </div>
           </div>
           <div class="stat-pill">
             <div class="stat-pill__icon">🚨</div>
             <div>
-              <div class="stat-pill__val">14,200</div>
-              <div class="stat-pill__lbl">Pop. at Risk</div>
+              <div class="stat-pill__val" data-stat="pop">14,200</div>
+              <div class="stat-pill__lbl">Pop. in Hazard Zones</div>
+            </div>
+          </div>
+          <div class="stat-pill stat-pill--badge" style="background:rgba(6,182,212,0.12);border-color:rgba(6,182,212,0.3);">
+            <div class="stat-pill__icon">📍</div>
+            <div>
+              <div class="stat-pill__val" style="font-size:12px;color:var(--accent-cyan);">PUNE METRO</div>
+              <div class="stat-pill__lbl">GIS Grid: 5 Sectors</div>
             </div>
           </div>
         </div>
@@ -200,15 +264,24 @@
           <!-- Simulation Panel Tab -->
           <div id="tabcontent-sim" class="panel-tab-content" role="tabpanel" aria-labelledby="tab-sim">
             <div class="glass-card sim-panel">
-              <div class="card-title">⚡ Disaster Simulation</div>
-              <p style="font-size:12px;color:var(--text-secondary);margin-bottom:var(--space-md);">
-                Adjust parameters to simulate zone risk scenarios.
-                <!--TODO (Simulation Engine): Wire sliders to re-render map polygons in real-time. -->
+              <div class="card-title">⚡ Disaster Simulation Engine</div>
+              <p style="font-size:12px;color:var(--text-secondary);margin-bottom:var(--space-sm);">
+                Predict cascade inundation across interconnected sectors.
               </p>
+
+              <!-- Quick Presets -->
+              <div class="sim-presets-wrap" style="margin-bottom:var(--space-md);">
+                <label class="form-label" style="font-size:11px;margin-bottom:4px;">Disaster Scenario Presets</label>
+                <div class="sim-presets-grid" id="sim-presets-grid">
+                  <button type="button" class="sim-preset-btn" data-rain="165" data-water="6.5">⚡ Cloudburst</button>
+                  <button type="button" class="sim-preset-btn" data-rain="110" data-water="4.2">🌊 Monsoon Peak</button>
+                  <button type="button" class="sim-preset-btn" data-rain="30" data-water="1.8">⛅ Post-Rain</button>
+                </div>
+              </div>
 
               <!-- Zone selector -->
               <div class="form-group">
-                <label class="form-label" for="sim-zone">Target Zone</label>
+                <label class="form-label" for="sim-zone">Target Sector</label>
                 <select id="sim-zone" class="form-control">
                   <option value="zone-a">Zone A — Riverside</option>
                   <option value="zone-b">Zone B — Downtown</option>
@@ -242,6 +315,11 @@
                       aria-label="Run simulation with current parameters">
                 ▶ Run Simulation
               </button>
+              <button id="sim-reset-btn" class="btn btn--reject" style="width:100%;margin-top:var(--space-sm);"
+                      aria-label="Reset simulation to live data">
+                ↺ Reset to Live Data
+              </button>
+
 
               <!-- Result display -->
               <div id="sim-result" aria-live="polite" aria-label="Simulation result"></div>

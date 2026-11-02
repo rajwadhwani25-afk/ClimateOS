@@ -25,45 +25,112 @@
     <div class="citizen-page">
 
       <!-- Emergency Alert Banner -->
-      <div class="glass-card" style="border-left:4px solid var(--risk-severe);background:linear-gradient(135deg,rgba(239,68,68,0.12),rgba(249,115,22,0.06));" role="alert" aria-live="assertive">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+      <section class="glass-card alert-hero pulse-glow" role="alert" aria-live="assertive">
+        <div class="alert-hero__top">
           <span class="risk-badge risk-badge--severe pulse">🚨 FLASH FLOOD WARNING</span>
+          <span class="alert-hero__time">Updated Just Now</span>
         </div>
-        <p style="font-size:14px;font-weight:600;color:var(--text-primary);line-height:1.5;">
-          Flash flood warning active in your zone. Water levels rising rapidly near Riverside Ave.
-          Move to high ground or a designated shelter immediately.
+        <h2 class="alert-hero__headline">Critical Inundation Risk in Sector A</h2>
+        <p class="alert-hero__body">
+          Water levels along Mutha River have breached safety threshold (4.2m).
+          Residents near Riverside Avenue must seek designated high-ground shelters immediately.
         </p>
-        <button id="btn-use-location" class="btn btn--cyan" style="margin-top:10px;width:100%;" aria-label="Use GPS to detect your zone">
-          📍 Use My Location
-        </button>
-      </div>
-
-      <!-- Risk Status Card (dynamic) -->
-      <div id="citizen-risk-card" class="risk-card" aria-label="Your zone risk status">
-        <!-- Populated by js/citizen/home.js -->
-        <div class="loading-state">Loading risk status…</div>
-      </div>
-
-      <!-- Report Incident CTA -->
-      <a href="citizen-report.html" class="btn btn--primary btn-cta" role="button" id="btn-report-cta" aria-label="Report an emergency incident">
-        <span>📢 Report Emergency Incident</span>
-        <span>→</span>
-      </a>
-
-      <!-- Nearest Shelters Card (dynamic) -->
-      <div id="citizen-shelter-card" class="glass-card" aria-label="Nearest shelter information">
-        <div class="loading-state">Loading shelters…</div>
-      </div>
-
-      <!-- Safe Route CTA -->
-      <a href="citizen-route.html" class="glass-card" style="display:flex;justify-content:space-between;align-items:center;text-decoration:none;" aria-label="View safe evacuation route">
-        <div>
-          <div class="card-title">🛡️ Safe Evacuation Route</div>
-          <div style="font-size:13px;font-weight:600;color:var(--risk-low);">Route C — Elevated Highway Bypass</div>
-          <div style="font-size:12px;color:var(--text-muted);">2.4 km • ~12 mins • Safest</div>
+        <div class="alert-hero__actions">
+          <button id="btn-use-location" class="btn btn--cyan" aria-label="Use GPS to detect your zone">
+            📍 Detect My Precise Zone
+          </button>
+          <a href="citizen-route.html" class="btn btn--primary" aria-label="Get instant safe evacuation route">
+            🛡️ Evacuate Now →
+          </a>
         </div>
-        <span style="color:var(--accent-cyan);font-size:20px;">→</span>
-      </a>
+      </section>
+
+      <!-- Risk Status Card (dynamic, populated by home.js) -->
+      <section id="citizen-risk-card" class="risk-card-container" aria-label="Your zone risk status">
+        <div class="glass-card skeleton" style="height: 190px;"></div>
+      </section>
+
+      <!-- Quick Action Deck (4 visually rich cards) -->
+      <section class="action-grid" aria-label="Emergency quick actions">
+        <a href="citizen-report.html" class="action-card action-card--report" id="btn-report-cta">
+          <div class="action-card__icon">📢</div>
+          <div class="action-card__info">
+            <h3 class="action-card__title">Report Hazard</h3>
+            <p class="action-card__desc">AI-verified flood, blockage, or medical distress report</p>
+          </div>
+          <span class="action-card__arrow">→</span>
+        </a>
+
+        <a href="citizen-route.html" class="action-card action-card--route">
+          <div class="action-card__icon">🛡️</div>
+          <div class="action-card__info">
+            <h3 class="action-card__title">Safe Evac Route</h3>
+            <p class="action-card__desc">AI-calculated route avoiding submerged bridges (2.4 km)</p>
+          </div>
+          <span class="action-card__arrow">→</span>
+        </a>
+
+        <a href="citizen-shelters.html" class="action-card action-card--shelters">
+          <div class="action-card__icon">🏥</div>
+          <div class="action-card__info">
+            <h3 class="action-card__title">Nearby Shelters</h3>
+            <p class="action-card__desc">Find verified shelters with open beds & food supplies</p>
+          </div>
+          <span class="action-card__arrow">→</span>
+        </a>
+
+        <a href="citizen-map.html" class="action-card action-card--map">
+          <div class="action-card__icon">🗺️</div>
+          <div class="action-card__info">
+            <h3 class="action-card__title">Interactive Risk Map</h3>
+            <p class="action-card__desc">Live GIS view of 5 flood zones, road closures & shelters</p>
+          </div>
+          <span class="action-card__arrow">→</span>
+        </a>
+      </section>
+
+      <!-- Nearest Shelters Card (dynamic, populated by home.js) -->
+      <section id="citizen-shelter-card" class="glass-card" aria-label="Nearest shelter information">
+        <div class="loading-state">Loading shelters…</div>
+      </section>
+
+      <!-- Quick Emergency Hotline Strip -->
+      <section class="glass-card hotline-card" aria-label="Emergency response numbers">
+        <div class="card-title">📞 24/7 Emergency Helplines (Tap to Call)</div>
+        <div class="hotline-grid">
+          <a href="tel:108" class="hotline-pill hotline-pill--emergency">
+            <span class="hotline-icon">🚑</span>
+            <div>
+              <div class="hotline-num">108</div>
+              <div class="hotline-name">Disaster & Medical</div>
+            </div>
+          </a>
+          <a href="tel:101" class="hotline-pill">
+            <span class="hotline-icon">🚒</span>
+            <div>
+              <div class="hotline-num">101</div>
+              <div class="hotline-name">Fire & Rescue</div>
+            </div>
+          </a>
+          <a href="tel:100" class="hotline-pill">
+            <span class="hotline-icon">👮</span>
+            <div>
+              <div class="hotline-num">100</div>
+              <div class="hotline-name">Police Control</div>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <!-- Immediate Safety Checklist -->
+      <section class="glass-card safety-tips" aria-label="Flood survival tips">
+        <div class="card-title">📋 Immediate Safety Protocols</div>
+        <ul class="tips-list">
+          <li class="tips-item">⚡ <strong>Turn off main electrical breaker</strong> and gas valve before evacuating.</li>
+          <li class="tips-item">🚫 <strong>Do NOT drive into moving water</strong> — 6 inches can stall a vehicle.</li>
+          <li class="tips-item">🎒 <strong>Grab Go-Bag:</strong> Medications, identity documents, bottled water & phone charger.</li>
+        </ul>
+      </section>
 
     </div>
   </main>

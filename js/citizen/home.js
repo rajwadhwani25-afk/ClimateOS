@@ -38,20 +38,73 @@ function buildRiskCard(zone) {
   const colorMap = { severe: "#ef4444", high: "#f97316", moderate: "#f59e0b", low: "#22c55e" };
   const color = colorMap[zone.risk_level] || "#f59e0b";
   const pct = zone.risk_score;
+  const levelTitle = (zone.risk_level || "HIGH").toUpperCase();
+
   return `
-    <div class="risk-card" style="border-left: 4px solid ${color};">
+    <div class="risk-card glass-card" style="border-left: 4px solid ${color};">
       <div class="risk-card__header">
-        <span class="risk-badge risk-badge--${zone.risk_level}">${zone.status}</span>
-        <span class="risk-card__zone">${zone.name}</span>
+        <div>
+          <span class="risk-badge risk-badge--${zone.risk_level}">${zone.status || levelTitle + ' RISK'}</span>
+          <h2 class="risk-card__zone-title">${zone.name}</h2>
+        </div>
+        <div class="risk-card__badge-live">
+          <span class="status-beacon status-beacon--red"></span> Live Analysis
+        </div>
       </div>
-      <div class="risk-card__score-row">
-        <span class="risk-card__score" style="color:${color}">${pct}</span>
-        <span class="risk-card__score-label">/ 100 Risk Score</span>
+
+      <div class="risk-card__main">
+        <div class="risk-card__score-dial">
+          <span class="risk-card__score" style="color:${color}">${pct}</span>
+          <span class="risk-card__score-sub">/ 100</span>
+          <div class="risk-card__score-desc">Inundation Index</div>
+        </div>
+
+        <div class="risk-card__vitals">
+          <div class="vital-item">
+            <span class="vital-icon">🌧️</span>
+            <div>
+              <div class="vital-val">${zone.rainfall_mm_h || 110} mm/h</div>
+              <div class="vital-lbl">Downpour Rate</div>
+            </div>
+          </div>
+          <div class="vital-item">
+            <span class="vital-icon">🌊</span>
+            <div>
+              <div class="vital-val">${zone.water_level_m || 4.2} m</div>
+              <div class="vital-lbl">River Level</div>
+            </div>
+          </div>
+          <div class="vital-item">
+            <span class="vital-icon">👥</span>
+            <div>
+              <div class="vital-val">${(zone.population_at_risk || 14200).toLocaleString()}</div>
+              <div class="vital-lbl">Pop. In Hazard Zone</div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="risk-card__bar">
-        <div class="risk-card__bar-fill" style="width:${pct}%;background:${color};"></div>
+
+      <div class="risk-card__bar-wrap">
+        <div class="risk-card__bar-track">
+          <div class="risk-card__bar-fill" style="width:${pct}%;background:${color};box-shadow:0 0 10px ${color};"></div>
+        </div>
       </div>
-      <p class="risk-card__advice">${zone.advice || "Stay alert and monitor official updates."}</p>
+
+      <div class="risk-card__advice-box">
+        <span class="advice-icon">💡</span>
+        <p class="risk-card__advice">
+          <strong>Recommended Action:</strong> ${zone.advice || "Flash flood warning active. Avoid low bridges and move to designated high ground immediately."}
+        </p>
+      </div>
+
+      <div class="risk-card__cta-row">
+        <a href="citizen-route.html" class="btn btn--primary btn-sm" style="flex:1;">
+          🛡️ View Evacuation Route →
+        </a>
+        <a href="citizen-map.html" class="btn btn--cyan btn-sm">
+          🗺️ Live GIS
+        </a>
+      </div>
     </div>
   `;
 }
@@ -65,29 +118,48 @@ async function loadNearestShelters() {
 
   const shelters = await getShelters();
 
-  // TODO (Shelter Intelligence): Sort by distance from user's geolocation.
-  // For now, show first 2 available (not FULL) shelters from the list.
   const available = shelters
-    ? shelters.filter(s => s.status !== "FULL").slice(0, 2)
+    ? shelters.filter(s => s.status !== "FULL").slice(0, 3)
     : _fallbackShelters();
 
   card.innerHTML = `
-    <div class="card-title">🏥 Nearest Safe Shelters</div>
-    ${available.map(s => buildShelterRow(s)).join("")}
-    <a href="shelters.html" class="view-all-link">View all shelters →</a>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-sm);">
+      <div class="card-title" style="margin-bottom:0;">🏥 Nearest Safe Shelters</div>
+      <a href="citizen-shelters.html" class="view-all-link">View All (${shelters ? shelters.length : 4}) →</a>
+    </div>
+    <div class="shelter-list-compact">
+      ${available.map(s => buildShelterRow(s)).join("")}
+    </div>
   `;
 }
 
 function buildShelterRow(shelter) {
   const pct = Math.round((shelter.occupancy / shelter.capacity) * 100);
   const statusColor = { OPEN: "var(--risk-low)", NEAR_CAPACITY: "var(--risk-moderate)", STANDBY: "var(--text-muted)" };
+  const color = statusColor[shelter.status] || "var(--risk-low)";
+
   return `
-    <div class="shelter-row">
-      <div class="shelter-row__name">${shelter.name}</div>
-      <div class="shelter-row__meta">
-        ${shelter.distance_km} km away &bull;
-        <span style="color:${statusColor[shelter.status] || 'var(--risk-moderate)'};">${shelter.status}</span> &bull;
-        ${shelter.occupancy}/${shelter.capacity} occupied (${pct}%)
+    <div class="shelter-row-rich">
+      <div class="shelter-row-rich__top">
+        <div>
+          <span class="shelter-row-rich__name">${shelter.name}</span>
+          <span class="shelter-dist-pill">${shelter.distance_km || 0.8} km away</span>
+        </div>
+        <span class="badge" style="color:${color};background:${color}22;border-color:${color};">
+          ${shelter.status === 'OPEN' ? '● OPEN' : shelter.status}
+        </span>
+      </div>
+
+      <div class="shelter-row-rich__bar-row">
+        <div class="shelter-capacity-bar">
+          <div class="shelter-capacity-bar__fill" style="width:${pct}%;background:${color};"></div>
+        </div>
+        <span class="shelter-capacity-text">${shelter.occupancy}/${shelter.capacity} beds (${pct}%)</span>
+      </div>
+
+      <div class="shelter-row-rich__actions">
+        <a href="tel:${shelter.contact || '108'}" class="btn-link">📞 ${shelter.contact || '+91 20 2550 1108'}</a>
+        <a href="citizen-route.html" class="btn btn--cyan btn-xs">🧭 Navigate</a>
       </div>
     </div>
   `;
@@ -95,10 +167,12 @@ function buildShelterRow(shelter) {
 
 function _fallbackShelters() {
   return [
-    { name: "Shelter B — Central School", status: "OPEN",         occupancy: 45,  capacity: 400, distance_km: 0.8 },
-    { name: "Shelter A — Community Hall", status: "NEAR_CAPACITY", occupancy: 410, capacity: 500, distance_km: 1.5 },
+    { name: "Shelter B — Central School (High Ground)", status: "OPEN",          occupancy: 120, capacity: 400, distance_km: 0.8, contact: "+91 20 2550 1108" },
+    { name: "Shelter A — Community Center",             status: "NEAR_CAPACITY",  occupancy: 410, capacity: 500, distance_km: 1.5, contact: "+91 20 2550 1109" },
+    { name: "Shelter C — Sports Complex Stadium",       status: "OPEN",          occupancy: 85,  capacity: 800, distance_km: 2.1, contact: "+91 20 2550 1110" },
   ];
 }
+
 
 // ---------------------------------------------------------------------------
 // Use My Location button

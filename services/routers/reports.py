@@ -1,17 +1,21 @@
 """
 Router: Citizen Reports & Incidents
 Endpoints:
-  POST /api/reports          — submit a citizen report; returns fake confidence score
-  GET  /api/incidents        — return ranked incidents with confidence labels
+  POST /api/reports            — submit a citizen report; returns AI confidence score
+  GET  /api/incidents          — return ranked incidents with confidence labels
+  GET  /api/incidents/stream   — Server-Sent Events stream; pushes new incidents live
 """
 
+import asyncio
 import json
 import os
 import random
 import string
 from datetime import datetime, timezone
-from typing import Optional
+from typing import AsyncGenerator, Optional
+
 from fastapi import APIRouter
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -26,6 +30,9 @@ with open(_DATA_PATH, "r") as _f:
 
 # In-memory store for submitted reports (resets on server restart)
 _REPORTS: list = []
+
+# SSE subscriber queues — one asyncio.Queue per connected government dashboard
+_SSE_SUBSCRIBERS: list[asyncio.Queue] = []
 
 
 # ---------------------------------------------------------------------------
@@ -114,10 +121,11 @@ def _random_id(prefix: str) -> str:
 # ---------------------------------------------------------------------------
 
 @router.post("/reports")
-def submit_report(body: CitizenReportIn):
+async def submit_report(body: CitizenReportIn):
     """
     Accept a citizen disaster report.
-    Returns the stored report enriched with a fake AI confidence score.
+    Returns the stored report enriched with an AI confidence score.
+    Broadcasts the new incident to all connected SSE subscribers (government dashboards).
 
     TODO (AI Report Verification): Trigger async verification pipeline here.
     TODO (Offline Cache): Add service-worker support to queue reports when offline.
@@ -152,6 +160,17 @@ def submit_report(body: CitizenReportIn):
     _INCIDENTS.insert(0, incident)
     _REPORTS.append(report_dict)
 
+    # ── Broadcast to all connected SSE subscribers ────────────────────────────
+    dead: list[asyncio.Queue] = []
+    for q in _SSE_SUBSCRIBERS:
+        try:
+            q.put_nowait(incident)
+        except asyncio.QueueFull:
+            dead.append(q)
+    for q in dead:
+        _SSE_SUBSCRIBERS.remove(q)
+    # ─────────────────────────────────────────────────────────────────────────
+
     return {
         "report":       report_dict,
         "verification": verification,
@@ -170,3 +189,47 @@ def get_incidents():
     """
     sorted_incidents = sorted(_INCIDENTS, key=lambda i: i.get("priority_score", 0), reverse=True)
     return sorted_incidents
+
+
+@router.get("/incidents/stream")
+async def stream_incidents():
+    """
+    Server-Sent Events endpoint.
+    Government dashboard subscribes here; whenever a citizen submits a report,
+    the resulting incident is pushed over this connection in real-time.
+
+    Protocol: text/event-stream  (standard SSE, no library needed on client)
+    Heartbeat: comment ping every 15s to keep the connection alive through proxies.
+    """
+    queue: asyncio.Queue = asyncio.Queue(maxsize=50)
+    _SSE_SUBSCRIBERS.append(queue)
+
+    async def event_generator() -> AsyncGenerator[str, None]:
+        # Send a "connected" event immediately so the client knows it's live
+        yield "event: connected\ndata: {\"status\": \"live\"}\n\n"
+        try:
+            while True:
+                try:
+                    # Wait up to 15s; if nothing arrives, send a heartbeat ping
+                    incident = await asyncio.wait_for(queue.get(), timeout=15.0)
+                    payload = json.dumps(incident)
+                    yield f"event: new_incident\ndata: {payload}\n\n"
+                except asyncio.TimeoutError:
+                    # SSE comment — keeps connection alive through load balancers/proxies
+                    yield ": heartbeat\n\n"
+        except asyncio.CancelledError:
+            pass
+        finally:
+            if queue in _SSE_SUBSCRIBERS:
+                _SSE_SUBSCRIBERS.remove(queue)
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",   # Disable nginx buffering
+            "Connection": "keep-alive",
+        },
+    )
+

@@ -23,77 +23,130 @@
   <main class="page-main">
     <div class="citizen-page">
 
+      <!-- Header Card -->
       <div class="glass-card">
-        <h1 style="font-family:var(--font-display);font-size:22px;font-weight:700;margin-bottom:4px;">📢 Report Incident</h1>
-        <p style="font-size:13px;color:var(--text-secondary);">
-          Your report is verified by AI and sent to emergency authorities.
-          High-confidence reports are actioned within minutes.
-        </p>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <h1 style="font-family:var(--font-display);font-size:22px;font-weight:700;margin-bottom:4px;">📢 Report Emergency Hazard</h1>
+            <p style="font-size:13px;color:var(--text-secondary);">
+              Direct line to Pune Emergency Operations. AI validates reports and dispatches response within minutes.
+            </p>
+          </div>
+          <span class="badge badge--info" style="flex-shrink:0;">AI Active</span>
+        </div>
+
+        <!-- Form Step indicator -->
+        <div class="report-steps" aria-label="Report steps">
+          <div class="step-dot active"><span class="step-num">1</span> Hazard</div>
+          <div class="step-line active"></div>
+          <div class="step-dot active"><span class="step-num">2</span> Location & Impact</div>
+          <div class="step-line active"></div>
+          <div class="step-dot active"><span class="step-num">3</span> AI Dispatch</div>
+        </div>
       </div>
 
       <div class="glass-card">
         <form id="form-citizen-report" novalidate>
 
-          <!-- Incident Category -->
+          <!-- Incident Category Visual Selector -->
           <div class="form-group">
-            <label class="form-label" for="rep-category">Incident Category *</label>
-            <select id="rep-category" class="form-control" required aria-required="true">
+            <label class="form-label" style="display:flex;justify-content:space-between;">
+              <span>1. Select Incident Type *</span>
+              <span style="font-size:11px;color:var(--accent-cyan);">Tap to select</span>
+            </label>
+            <!-- Visual category grid -->
+            <div id="category-grid" class="category-grid" role="radiogroup" aria-label="Incident Categories">
+              <!-- Populated by report.js -->
+            </div>
+            <!-- Synced select for form data & accessibility -->
+            <select id="rep-category" class="form-control" style="display:none;" required aria-required="true">
               <!-- Populated dynamically by report.js -->
             </select>
           </div>
 
-          <!-- Location -->
-          <div class="form-group">
-            <label class="form-label" for="rep-location">Location / Address</label>
-            <input type="text" id="rep-location" class="form-control"
-                   placeholder="e.g. 142 Riverside Avenue, Zone A"
-                   autocomplete="street-address">
-            <button type="button" id="btn-report-location" class="btn btn--cyan" style="margin-top:6px;width:100%;" aria-label="Capture current GPS location">
-              📍 Use My Location
-            </button>
-            <span id="rep-location-display" style="font-size:11px;color:var(--text-muted);margin-top:4px;display:block;"></span>
+          <!-- Location & GPS -->
+          <div class="form-group" style="margin-top:var(--space-md);">
+            <label class="form-label" for="rep-location">2. Location / Landmark *</label>
+            <div style="display:flex;gap:8px;">
+              <input type="text" id="rep-location" class="form-control"
+                     placeholder="e.g. 142 Riverside Avenue, near Z-Bridge"
+                     autocomplete="street-address" required style="flex:1;">
+              <button type="button" id="btn-report-location" class="btn btn--cyan" style="white-space:nowrap;padding:0 14px;" aria-label="Capture current GPS location">
+                📍 GPS Pin
+              </button>
+            </div>
+            <span id="rep-location-display" style="font-size:11px;color:var(--accent-cyan);margin-top:4px;display:block;font-weight:600;"></span>
           </div>
 
-          <!-- Description -->
+          <!-- Description + Character Counter -->
           <div class="form-group">
-            <label class="form-label" for="rep-description">Description *</label>
-            <textarea id="rep-description" class="form-control" rows="4"
-                      placeholder="Describe what you see: water depth, number of people affected, accessibility…"
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <label class="form-label" for="rep-description">3. Situation Description *</label>
+              <span id="rep-char-count" style="font-size:11px;color:var(--text-muted);">0 / 500</span>
+            </div>
+            <textarea id="rep-description" class="form-control" rows="3" maxlength="500"
+                      placeholder="Describe what you see: estimated water depth, flow speed, blocked vehicles, or power line hazards…"
                       required aria-required="true"></textarea>
           </div>
 
-          <!-- Trapped Count -->
+          <!-- Impact Metrics Grid -->
           <div class="form-group">
-            <label class="form-label" for="rep-trapped">Trapped People (if any)</label>
-            <input type="number" id="rep-trapped" class="form-control" min="0" placeholder="0" inputmode="numeric">
+            <label class="form-label">4. Affected Persons (if applicable)</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <div class="metric-input-card">
+                <span class="metric-icon">🆘</span>
+                <div style="flex:1;">
+                  <label class="metric-label" for="rep-trapped">Trapped</label>
+                  <input type="number" id="rep-trapped" class="form-control metric-field" min="0" placeholder="0" inputmode="numeric">
+                </div>
+              </div>
+              <div class="metric-input-card">
+                <span class="metric-icon">🩹</span>
+                <div style="flex:1;">
+                  <label class="metric-label" for="rep-injured">Injured</label>
+                  <input type="number" id="rep-injured" class="form-control metric-field" min="0" placeholder="0" inputmode="numeric">
+                </div>
+              </div>
+            </div>
           </div>
 
-          <!-- Injured Count -->
+          <!-- Live Priority Meter (Dynamic) -->
           <div class="form-group">
-            <label class="form-label" for="rep-injured">Injured People (if any)</label>
-            <input type="number" id="rep-injured" class="form-control" min="0" placeholder="0" inputmode="numeric">
+            <div id="rep-priority-meter" class="priority-meter">
+              <div class="priority-meter__header">
+                <span class="priority-meter__label">Estimated Response Priority</span>
+                <span id="rep-priority-badge" class="badge badge--high">High Urgency</span>
+              </div>
+              <p id="rep-priority-hint" class="priority-meter__hint">AI model will fast-track this dispatch to first responder units.</p>
+            </div>
           </div>
 
-          <!-- Photo Upload -->
+          <!-- Photo Upload Dropzone -->
           <div class="form-group">
-            <label class="form-label" for="rep-photo">Attach Photo (Optional)</label>
-            <input type="file" id="rep-photo" class="form-control" accept="image/*" capture="environment"
-                   aria-label="Upload a photo of the incident">
-            <!-- TODO (AI Report Verification): Photo will be sent to computer vision
-                 endpoint for flood/damage detection and confidence boosting. -->
-            <div id="rep-photo-preview"></div>
+            <label class="form-label">5. Visual Evidence (Boosts AI Confidence by +25%)</label>
+            <div class="photo-dropzone" id="photo-dropzone">
+              <input type="file" id="rep-photo" class="photo-dropzone__input" accept="image/*" capture="environment" aria-label="Upload a photo of the incident">
+              <div class="photo-dropzone__content">
+                <span class="photo-dropzone__icon">📸</span>
+                <div class="photo-dropzone__text">
+                  <strong>Tap to take photo</strong> or upload image
+                </div>
+                <div class="photo-dropzone__sub">Computer vision verifies water level & structural risk</div>
+              </div>
+            </div>
+            <div id="rep-photo-preview" class="photo-preview-wrap"></div>
           </div>
 
-          <!-- Submit -->
+          <!-- Submit Button -->
           <button type="submit" class="btn btn--primary btn-cta" id="btn-submit-report" aria-label="Submit your incident report">
-            <span>Submit to AI Verification</span>
-            <span>→</span>
+            <span>Transmit to AI Dispatch Center</span>
+            <span>⚡</span>
           </button>
 
         </form>
 
         <!-- Status message area -->
-        <div id="rep-status" role="status" aria-live="polite"></div>
+        <div id="rep-status" role="status" aria-live="polite" style="margin-top:var(--space-md);"></div>
       </div>
 
     </div>
